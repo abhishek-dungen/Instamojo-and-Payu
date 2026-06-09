@@ -1,6 +1,6 @@
 const $ = (s) => document.querySelector(s);
 const money = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 });
-const state = { rows: [], summary: null, filters: { source: "", q: "", status: "", category: "", bucket: "", from: "", to: "" } };
+const state = { rows: [], summary: null, filters: { q: "", source: "", category: "", amount: "", date: "", day: "", webinar: "" } };
 
 const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const num = (v) => Number(v || 0);
@@ -109,16 +109,17 @@ async function loadJson(url) {
   return res.json();
 }
 
+const rowText = (r) => [r.transaction, r.name, r.phone, r.email, r.source, r.category, r.amount, r.date, r.day, r.time, r.request_id, r.status, r.amount_bucket, r.purpose].join(" ").toLowerCase();
+
 function filterRows() {
   const f = state.filters;
   return state.rows.filter((r) => {
+    if (f.q && !rowText(r).includes(f.q)) return false;
     if (f.source && r.source !== f.source) return false;
-    if (f.q && !Object.values(r).join(" ").toLowerCase().includes(f.q)) return false;
-    if (f.status && r.status !== f.status) return false;
     if (f.category && r.category !== f.category) return false;
-    if (f.bucket && r.amount_bucket !== f.bucket) return false;
-    if (f.from && r.created_at && new Date(r.created_at) < new Date(f.from)) return false;
-    if (f.to && r.created_at && new Date(r.created_at) > new Date(`${f.to}T23:59:59.999Z`)) return false;
+    if (f.amount && String(r.amount) !== f.amount) return false;
+    if (f.date && r.date !== f.date) return false;
+    if (f.day && r.day !== f.day) return false;
     return true;
   });
 }
@@ -136,7 +137,7 @@ function chart(items, id, color) {
 function applyOptions(id, values) {
   const el = $(id);
   const current = el.value;
-  [...new Set(values)].filter(Boolean).sort().forEach((v) => {
+  [...new Set(values)].filter((v) => v !== "" && v !== null && v !== undefined).sort().forEach((v) => {
     if ([...el.options].some((o) => o.value === v)) return;
     const opt = document.createElement("option");
     opt.value = v; opt.textContent = v; el.appendChild(opt);
@@ -215,26 +216,22 @@ async function refreshData() {
     state.rows = rows;
     state.summary = summary;
     applyOptions("#source", state.rows.map((r) => r.source));
-    applyOptions("#status", state.rows.map((r) => r.status));
     applyOptions("#category", state.rows.map((r) => r.category));
-    applyOptions("#bucket", state.rows.map((r) => r.amount_bucket));
+    applyOptions("#amount", state.rows.map((r) => String(r.amount)));
+    applyOptions("#date", state.rows.map((r) => r.date));
+    applyOptions("#day", state.rows.map((r) => r.day));
     applyWebinarOptions();
-    const dates = state.rows.map((r) => r.created_at?.slice(0, 10)).filter(Boolean).sort();
-    if (dates.length) {
-      $("#from").min = dates[0];
-      $("#to").max = dates[dates.length - 1];
-    }
     render();
   } catch {
     $("#refreshState").textContent = "No combined data file yet. Run sync first.";
   }
 }
 
-["source","q","status","category","bucket","from","to","webinar"].forEach((id) => {
+["q","source","category","amount","date","day","webinar"].forEach((id) => {
   const el = $(`#${id}`);
   const evt = id === "q" ? "input" : "change";
   el.addEventListener(evt, () => {
-    if (id !== "webinar") state.filters[id] = id === "q" ? el.value.trim().toLowerCase() : el.value;
+    state.filters[id] = id === "q" ? el.value.trim().toLowerCase() : el.value;
     render();
   });
 });
