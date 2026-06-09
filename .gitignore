@@ -1,4 +1,6 @@
 .DS_Store
-.env.local
 node_modules/
-instamojo-and-payu-firebase-adminsdk-fbsvc-446174bd36.json
+.env
+.env.local
+safe.env
+instamojo-and-payu-firebase-adminsdk-fbsvc-*.json

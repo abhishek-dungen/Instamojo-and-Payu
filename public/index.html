@@ -3,44 +3,71 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Instamojo Dashboard</title>
+  <title>Instamojo Payments Dashboard</title>
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
-  <main class="shell">
-    <section class="hero">
+  <main class="app">
+    <header class="hero">
       <div>
-        <p class="eyebrow">Instamojo payments</p>
+        <p class="eyebrow">Instamojo</p>
         <h1>Payments dashboard</h1>
-        <p class="sub">Webinar 99, bundle 198, course 500+.</p>
-        <p class="sub" id="status"></p>
+        <p class="lede">99 = webinar, 198 = bundle, >500 = course.</p>
+        <p class="lede muted" id="refreshState">Loading</p>
       </div>
-      <div class="stats" id="stats"></div>
-    </section>
-    <section class="panel filters">
-      <input id="q" placeholder="Quick search" />
-      <select id="source"><option value="">All sources</option></select>
+      <div class="hero-actions">
+        <button id="reload">Reload data</button>
+        <button class="ghost" id="serverRefresh">Sync from Instamojo</button>
+      </div>
+    </header>
+
+    <section class="kpis" id="kpis"></section>
+
+    <section class="panel controls">
+      <input id="q" placeholder="Search name, email, amount, ID, purpose" />
+      <select id="status"><option value="">All statuses</option></select>
       <select id="category"><option value="">All categories</option></select>
-      <select id="date"><option value="">All dates</option></select>
-      <select id="amount"><option value="">All amounts</option><option value="99">99</option><option value="198">198</option><option value="500+">500+</option><option value="other">Other</option></select>
+      <select id="bucket"><option value="">All buckets</option><option value="99">99</option><option value="198">198</option><option value="500+">500+</option><option value="Other">Other</option></select>
+      <input id="from" type="date" />
+      <input id="to" type="date" />
     </section>
-    <section class="panel">
-      <textarea id="import" rows="4" placeholder="Paste webhook JSON here"></textarea>
-      <div style="margin-top:10px;display:flex;gap:10px;align-items:center">
-        <button id="load">Load JSON</button>
-        <span class="sub" id="importStatus"></span>
+
+    <section class="grid">
+      <article class="panel chart-card">
+        <div class="panel-head"><h2>Revenue by category</h2><span>₹ split</span></div>
+        <div id="categoryChart" class="chart"></div>
+      </article>
+      <article class="panel chart-card">
+        <div class="panel-head"><h2>Transactions by status</h2><span>count</span></div>
+        <div id="statusChart" class="chart"></div>
+      </article>
+    </section>
+
+    <section class="panel toolbar">
+      <div id="summaryLine" class="muted"></div>
+      <div class="toolbar-actions">
+        <button class="ghost" id="selectVisible">Select visible</button>
+        <button class="ghost" id="clearSelection">Clear</button>
+        <button class="ghost" id="exportVisible">Export visible CSV</button>
+        <button id="exportSelected">Export selected CSV</button>
       </div>
+      <div id="selectedCount" class="muted"></div>
     </section>
-    <section class="panel">
+
+    <section class="panel table-panel">
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Transaction</th><th>Name</th><th>Phone</th><th>Email</th><th>Source</th><th>Category</th><th>Amount</th><th>Date</th><th>Day</th><th>Time</th></tr></thead>
-          <tbody id="rows"></tbody>
+          <thead>
+            <tr>
+              <th></th><th>Date</th><th>Customer</th><th>Amount</th><th>Type</th><th>Status</th><th>Phone</th><th>Email</th><th>Transaction</th>
+            </tr>
+          </thead>
+          <tbody id="table"></tbody>
         </table>
       </div>
     </section>
   </main>
-  <script src="./firebase-config.js"></script>
+
   <script src="./app.js"></script>
 </body>
 </html>
