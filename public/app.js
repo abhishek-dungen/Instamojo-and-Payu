@@ -26,9 +26,10 @@ async function loadFirestoreRows() {
 }
 
 async function loadLocalRows() {
-  const res = await fetch("/api/payments");
+  const res = await fetch("./data/transactions.json", { cache: "no-store" });
+  if (!res.ok) return [];
   const data = await res.json();
-  return data.rows || [];
+  return Array.isArray(data) ? data : data.rows || [];
 }
 
 function normalize(raw = {}, fallback = {}) {
@@ -79,7 +80,7 @@ async function init() {
   try {
     const rows = await loadFirestoreRows() || await loadLocalRows();
     state.rows = rows;
-    $("#status").textContent = cfg?.apiKey ? "Firestore loaded." : "Local API loaded.";
+    $("#status").textContent = cfg?.apiKey ? "Firestore loaded." : rows.length ? "Static data loaded." : "No data connected yet.";
   } catch (e) {
     state.rows = [];
     $("#status").textContent = `No transactions loaded (${e.message || e}).`;
