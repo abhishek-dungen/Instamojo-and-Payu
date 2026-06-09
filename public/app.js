@@ -21,7 +21,7 @@ function isLiveWebinarRow(r) {
   if (r.date === webinarDate) return true;
   if (r.day !== "Sunday") return false;
   const mins = timeToMinutes(r.time);
-  return mins !== null && mins >= 19 * 60 && mins <= 23 * 60;
+  return mins !== null && mins >= 19 * 60 && mins <= (23 * 60 + 45);
 }
 
 function webinarRows(date) {
