@@ -48,7 +48,7 @@ function applyOptions(id, values) {
 }
 
 function csv(rows) {
-  const cols = ["source","transaction","request_id","status","amount","category","amount_bucket","name","phone","email","purpose","bank_name","mode","bank_ref_num","payment_gateway","date","day","time","created_at","updated_at","longurl","shorturl","redirect_url","webhook","instrument_type","action","error_code","source_txn_status"];
+  const cols = ["transaction","name","phone","email","source","category","amount","date","day","time","request_id","status","amount_bucket","purpose","bank_name","mode","bank_ref_num","payment_gateway","created_at","updated_at","longurl","shorturl","redirect_url","webhook","instrument_type","action","error_code","source_txn_status"];
   const q = (v, c) => {
     let s = String(v ?? "");
     if (c === "phone" && s) s = `\t${s}`;
@@ -95,16 +95,17 @@ function render() {
   $("#lastSync").textContent = state.summary?.generated_at ? new Date(state.summary.generated_at).toLocaleString() : "--";
   $("#table").innerHTML = rows.map((r) => `
     <tr>
-      <td></td>
-      <td>${esc(r.date || "")}</td>
-      <td><strong>${esc(r.name || "")}</strong><div class="muted">${esc(r.purpose || "")}</div></td>
-      <td class="amount">${money.format(num(r.amount))}</td>
-      <td><span class="tag ${esc(String(r.category || "other").toLowerCase())}">${esc(r.category)}</span></td>
-      <td><span class="tag ${esc(String(r.status || "").toLowerCase())}">${esc(r.status)}</span></td>
+      <td class="mono">${esc(r.transaction || "")}</td>
+      <td><strong>${esc(r.name || "")}</strong></td>
       <td>${esc(r.phone || "")}</td>
       <td>${esc(r.email || "")}</td>
-      <td class="mono">${esc(r.transaction || "")}</td>
-    </tr>`).join("") || `<tr><td colspan="9" class="empty">No matching payments</td></tr>`;
+      <td><span class="tag ${esc(String(r.source || "other").toLowerCase())}">${esc(r.source)}</span></td>
+      <td><span class="tag ${esc(String(r.category || "other").toLowerCase())}">${esc(r.category)}</span></td>
+      <td class="amount">${num(r.amount)}</td>
+      <td>${esc(r.date || "")}</td>
+      <td>${esc(r.day || "")}</td>
+      <td>${esc(r.time || "")}</td>
+    </tr>`).join("") || `<tr><td colspan="10" class="empty">No matching payments</td></tr>`;
   $("#refreshState").textContent = state.summary?.generated_at ? `Updated ${new Date(state.summary.generated_at).toLocaleString()}` : "Loaded";
 }
 
