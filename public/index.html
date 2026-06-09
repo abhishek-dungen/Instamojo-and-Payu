@@ -10,22 +10,21 @@
   <main class="app">
     <header class="hero">
       <div>
-        <p class="eyebrow" id="providerLabel">PayU</p>
+        <p class="eyebrow" id="providerLabel">Combined</p>
         <h1>Payments dashboard</h1>
         <p class="lede">99 = webinar, 198 = bundle, >500 = course.</p>
         <p class="lede muted" id="refreshState">Loading</p>
       </div>
       <div class="hero-actions">
-        <select id="provider"><option value="payu">PayU</option><option value="instamojo">Instamojo</option></select>
         <button id="reload">Reload data</button>
-        <button class="ghost" id="serverRefresh">Sync from source</button>
+        <button class="ghost" id="serverRefresh">Sync combined</button>
       </div>
     </header>
 
     <section class="kpis" id="kpis"></section>
 
     <section class="panel controls">
-      <input id="providerView" value="PayU" disabled />
+      <select id="source"><option value="">All sources</option><option value="Instamojo">Instamojo</option><option value="PayU">PayU</option></select>
       <input id="q" placeholder="Search name, email, amount, ID, purpose" />
       <select id="status"><option value="">All statuses</option></select>
       <select id="category"><option value="">All categories</option></select>

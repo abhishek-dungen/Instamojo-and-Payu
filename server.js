@@ -10,6 +10,11 @@ const root = process.cwd();
 const publicDir = path.join(root, "public");
 const dataDir = path.join(publicDir, "data");
 const providers = {
+  all: {
+    rowsFile: path.join(dataDir, "all", "transactions.json"),
+    summaryFile: path.join(dataDir, "all", "summary.json"),
+    csvName: "all-successful-payments.csv",
+  },
   instamojo: {
     rowsFile: path.join(dataDir, "transactions.json"),
     summaryFile: path.join(dataDir, "summary.json"),
@@ -24,7 +29,7 @@ const providers = {
 
 const readJson = (file, fallback) => { try { return JSON.parse(fs.readFileSync(file, "utf8")); } catch { return fallback; } };
 const writeJson = (file, data) => { fs.mkdirSync(path.dirname(file), { recursive: true }); fs.writeFileSync(file, JSON.stringify(data, null, 2)); };
-const providerOf = (u) => (u === "instamojo" ? "instamojo" : "payu");
+const providerOf = (u) => (u === "instamojo" || u === "payu" ? u : "all");
 
 async function fetchInstamojoRows() {
   const key = process.env.INSTAMOJO_API_KEY;
@@ -32,14 +37,29 @@ async function fetchInstamojoRows() {
   if (!key || !token) return [];
   const headers = { "X-Api-Key": key, "X-Auth-Token": token };
   const base = process.env.INSTAMOJO_BASE_URL || "https://www.instamojo.com";
-  const res = await fetch(`${base}/api/1.1/payment-requests/?page=1&limit=500`, { headers });
-  if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-  const first = await res.json();
-  const rows = Array.isArray(first) ? first : (first.payment_requests || first.results || first.data || []);
+  const rows = [];
+  for (let page = 1; page <= 50; page++) {
+    const res = await fetch(`${base}/api/1.1/payment-requests/?page=${page}&limit=500`, { headers });
+    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+    const json = await res.json();
+    const batch = Array.isArray(json) ? json : (json.payment_requests || json.results || json.data || []);
+    rows.push(...batch);
+    const totalPages = Number(res.headers.get("pages") || json.pages || json.total_pages || 1) || 1;
+    if (page >= totalPages || batch.length < 500) break;
+  }
   return sortRows(rows.map((r) => normalizePayment(r, r)).filter(isSuccessfulPayment));
 }
 
 async function refresh(provider) {
+  if (provider === "all") {
+    const [instamojoRows, payuRows] = await Promise.all([fetchInstamojoRows(), fetchPayuRows()]);
+    const rows = sortRows([...instamojoRows, ...payuRows]);
+    const summary = { ...summarize(rows), generated_at: new Date().toISOString() };
+    writeJson(providers.all.rowsFile, rows);
+    writeJson(providers.all.summaryFile, summary);
+    fs.writeFileSync(path.join(dataDir, "all", "transactions.csv"), `${toCsv(rows)}`);
+    return { rows, summary };
+  }
   if (provider === "payu") {
     const rows = await fetchPayuRows();
     const summary = { ...summarizePayu(rows), generated_at: new Date().toISOString() };

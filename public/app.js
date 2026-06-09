@@ -1,10 +1,6 @@
 const $ = (s) => document.querySelector(s);
 const money = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 });
-const providers = {
-  payu: { label: "PayU", dir: "./data/payu", file: "payu-all-successful-payments.csv" },
-  instamojo: { label: "Instamojo", dir: "./data", file: "instamojo-all-successful-payments.csv" },
-};
-const state = { provider: "payu", rows: [], summary: null, filters: { q: "", status: "", category: "", bucket: "", from: "", to: "" } };
+const state = { rows: [], summary: null, filters: { source: "", q: "", status: "", category: "", bucket: "", from: "", to: "" } };
 
 const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const num = (v) => Number(v || 0);
@@ -16,14 +12,10 @@ async function loadJson(url) {
   return res.json();
 }
 
-function paths() {
-  const p = providers[state.provider];
-  return { rows: `${p.dir}/transactions.json`, summary: `${p.dir}/summary.json` };
-}
-
 function filterRows() {
   const f = state.filters;
   return state.rows.filter((r) => {
+    if (f.source && r.source !== f.source) return false;
     if (f.q && !Object.values(r).join(" ").toLowerCase().includes(f.q)) return false;
     if (f.status && r.status !== f.status) return false;
     if (f.category && r.category !== f.category) return false;
@@ -56,7 +48,7 @@ function applyOptions(id, values) {
 }
 
 function csv(rows) {
-  const cols = ["transaction","request_id","status","amount","category","amount_bucket","name","phone","email","purpose","source","bank_name","mode","bank_ref_num","payment_gateway","date","day","time","created_at","updated_at","longurl","shorturl","redirect_url","webhook","instrument_type","action","error_code","source_txn_status"];
+  const cols = ["source","transaction","request_id","status","amount","category","amount_bucket","name","phone","email","purpose","bank_name","mode","bank_ref_num","payment_gateway","date","day","time","created_at","updated_at","longurl","shorturl","redirect_url","webhook","instrument_type","action","error_code","source_txn_status"];
   const q = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
   return [cols.join(","), ...rows.map((r) => cols.map((c) => q(r[c])).join(","))].join("\n");
 }
@@ -77,8 +69,7 @@ function render() {
   const completed = rows.filter(isSuccess).length;
   const pending = rows.filter((r) => /^(pending|initiated)$/i.test(r.status)).length;
   const split = (k) => rows.filter((r) => r.category === k);
-  $("#providerLabel").textContent = providers[state.provider].label;
-  $("#providerView").value = providers[state.provider].label;
+  $("#providerLabel").textContent = "Combined";
   $("#kpis").innerHTML = [
     ["Transactions", rows.length],
     ["Collected", money.format(collected)],
@@ -115,10 +106,10 @@ function render() {
 async function refreshData() {
   $("#refreshState").textContent = "Loading...";
   try {
-    const base = state.provider === "payu" ? "./data/payu" : "./data";
-    const [rows, summary] = await Promise.all([loadJson(`${base}/transactions.json`), loadJson(`${base}/summary.json`)]);
+    const [rows, summary] = await Promise.all([loadJson("./data/all/transactions.json"), loadJson("./data/all/summary.json")]);
     state.rows = rows;
     state.summary = summary;
+    applyOptions("#source", state.rows.map((r) => r.source));
     applyOptions("#status", state.rows.map((r) => r.status));
     applyOptions("#category", state.rows.map((r) => r.category));
     applyOptions("#bucket", state.rows.map((r) => r.amount_bucket));
@@ -129,11 +120,11 @@ async function refreshData() {
     }
     render();
   } catch {
-    $("#refreshState").textContent = "No data file yet. Run sync first.";
+    $("#refreshState").textContent = "No combined data file yet. Run sync first.";
   }
 }
 
-["q","status","category","bucket","from","to"].forEach((id) => {
+["source","q","status","category","bucket","from","to"].forEach((id) => {
   const el = $(`#${id}`);
   const evt = id === "q" ? "input" : "change";
   el.addEventListener(evt, () => {
@@ -142,22 +133,14 @@ async function refreshData() {
   });
 });
 
-$("#provider").addEventListener("change", async (e) => {
-  state.provider = e.target.value;
-  state.filters = { q: "", status: "", category: "", bucket: "", from: "", to: "" };
-  ["#q","#status","#category","#bucket","#from","#to"].forEach((sel) => { const el = $(sel); if (el) el.value = ""; });
-  await refreshData();
-});
-
 $("#exportAll").addEventListener("click", () => {
   if (!state.rows.length) return;
-  const rows = state.rows.filter(isSuccess);
-  download(`${providers[state.provider].file}`, csv(rows), "text/csv");
+  download("all-successful-payments.csv", csv(state.rows.filter(isSuccess)), "text/csv");
 });
 $("#reload").addEventListener("click", refreshData);
 $("#serverRefresh").addEventListener("click", async () => {
   try {
-    const res = await fetch(`/api/refresh?provider=${state.provider}`, { method: "POST" });
+    const res = await fetch("/api/refresh?provider=all", { method: "POST" });
     if (!res.ok) throw new Error(await res.text());
     await refreshData();
   } catch {
