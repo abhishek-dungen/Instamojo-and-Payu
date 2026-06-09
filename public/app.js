@@ -7,6 +7,13 @@ const num = (v) => Number(v || 0);
 const isSuccess = (r) => /^(completed|credit|success|succeeded|captured)$/i.test(String(r?.status || ""));
 const webinarDate = "04-Jan-2026";
 
+function parseDmy(date) {
+  const m = String(date || "").match(/^(\d{2})-([A-Za-z]{3})-(\d{4})$/);
+  if (!m) return null;
+  const months = { Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5, Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11 };
+  return { y: +m[3], m: months[m[2]], d: +m[1] };
+}
+
 function timeToMinutes(t) {
   const m = String(t || "").trim().match(/^(\d{1,2}):(\d{2})\s*([ap]m)$/i);
   if (!m) return null;
@@ -17,32 +24,82 @@ function timeToMinutes(t) {
   return h * 60 + min;
 }
 
-function isLiveWebinarRow(r) {
-  if (r.date === webinarDate) return true;
-  if (r.day !== "Sunday") return false;
-  const mins = timeToMinutes(r.time);
-  return mins !== null && mins >= 19 * 60 && mins <= (23 * 60 + 45);
+function istTs(date, mins) {
+  const p = parseDmy(date);
+  if (!p) return null;
+  return Date.UTC(p.y, p.m, p.d, 0, mins - 330);
 }
 
-function webinarRows(date) {
-  return state.rows.filter((r) => (!date || r.date === date));
+function toIstTs(date, time) {
+  const mins = timeToMinutes(time);
+  if (mins === null) return istTs(date, 0);
+  return istTs(date, mins);
 }
 
-function webinarStats(rows) {
-  const regs = rows.filter((r) => num(r.amount) === 99 || num(r.amount) === 198).length;
-  const bundle = rows.filter((r) => num(r.amount) === 198).length;
-  const course = rows.filter((r) => isLiveWebinarRow(r) && num(r.amount) > 500).length;
+function shiftDate(date, days) {
+  const p = parseDmy(date);
+  if (!p) return null;
+  const d = new Date(Date.UTC(p.y, p.m, p.d));
+  d.setUTCDate(d.getUTCDate() + days);
+  return `${String(d.getUTCDate()).padStart(2, "0")}-${["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][d.getUTCMonth()]}-${d.getUTCFullYear()}`;
+}
+
+function webinarDates() {
+  return [...new Set(state.rows.filter((r) => r.day === "Sunday" || r.date === webinarDate).map((r) => r.date))].sort((a, b) => new Date(b.split("-").reverse().join("-")) - new Date(a.split("-").reverse().join("-")));
+}
+
+function weekWindow(date) {
+  const prev = shiftDate(date, -7);
+  if (!prev) return [null, null];
+  return [istTs(prev, 17 * 60 + 30), istTs(date, 17 * 60 + 30)];
+}
+
+function liveWindow(date) {
+  if (!parseDmy(date)) return [null, null];
+  if (date === webinarDate) return [istTs(date, 0), istTs(date, 23 * 60 + 59)];
+  return [istTs(date, 19 * 60), istTs(date, 23 * 60 + 45)];
+}
+
+function webinarStats(date) {
+  const [wStart, wEnd] = weekWindow(date);
+  const [lStart, lEnd] = liveWindow(date);
+  const registrations = state.rows.filter((r) => {
+    const ts = toIstTs(r.date, r.time);
+    return ts !== null && ts >= wStart && ts < wEnd && (num(r.amount) === 99 || num(r.amount) === 198);
+  }).length;
+  const bundles = state.rows.filter((r) => {
+    const ts = toIstTs(r.date, r.time);
+    return ts !== null && ts >= wStart && ts < wEnd && num(r.amount) === 198;
+  }).length;
+  const courses = state.rows.filter((r) => {
+    const ts = toIstTs(r.date, r.time);
+    return ts !== null && ts >= lStart && ts <= lEnd && num(r.amount) > 500;
+  }).length;
   return {
-    registrations: regs,
-    bundles: bundle,
-    courses: course,
-    bundleConv: regs ? bundle / regs : 0,
-    courseConv: regs ? course / regs : 0,
+    registrations,
+    bundles,
+    courses,
+    bundleConv: registrations ? bundles / registrations : 0,
+    courseConv: registrations ? courses / registrations : 0,
   };
+}
+
+function historicalStats() {
+  return webinarDates().reduce((acc, date) => {
+    const s = webinarStats(date);
+    acc.registrations += s.registrations;
+    acc.bundles += s.bundles;
+    acc.courses += s.courses;
+    return acc;
+  }, { registrations: 0, bundles: 0, courses: 0 });
 }
 
 function metricCard(label, value) {
   return `<article class="kpi"><span>${label}</span><strong>${value}</strong></article>`;
+}
+
+function pct(v) {
+  return `${(v * 100).toFixed(1).replace(/\.0$/, "")}%`;
 }
 
 async function loadJson(url) {
@@ -89,7 +146,7 @@ function applyOptions(id, values) {
 function applyWebinarOptions() {
   const el = $("#webinar");
   const current = el.value;
-  const dates = [...new Set(state.rows.filter(isLiveWebinarRow).map((r) => r.date))].sort((a, b) => new Date(b.split("-").reverse().join("-")) - new Date(a.split("-").reverse().join("-")));
+  const dates = webinarDates();
   el.innerHTML = `<option value="">All webinars</option>${dates.map((d) => `<option value="${d}">${d}</option>`).join("")}`;
   el.value = current && [...el.options].some((o) => o.value === current) ? current : (dates[0] || "");
 }
@@ -116,15 +173,13 @@ function download(name, text, type = "text/plain") {
 function render() {
   const rows = filterRows();
   const selectedWebinar = $("#webinar")?.value || "";
-  const selectedRows = webinarRows(selectedWebinar);
-  const historyRows = [...new Set(state.rows.filter(isLiveWebinarRow).map((r) => r.date))].flatMap((d) => webinarRows(d));
+  const selectedStats = selectedWebinar ? webinarStats(selectedWebinar) : { registrations: 0, bundles: 0, courses: 0, bundleConv: 0, courseConv: 0 };
+  const history = historicalStats();
   const total = rows.reduce((s, r) => s + num(r.amount), 0);
   const collected = rows.filter(isSuccess).reduce((s, r) => s + num(r.amount), 0);
   const completed = rows.filter(isSuccess).length;
   const pending = rows.filter((r) => /^(pending|initiated)$/i.test(r.status)).length;
   const split = (k) => rows.filter((r) => r.category === k);
-  const s1 = webinarStats(selectedRows);
-  const s2 = webinarStats(historyRows);
   $("#providerLabel").textContent = "Combined";
   $("#kpis").innerHTML = [
     ["Transactions", rows.length],
@@ -137,18 +192,18 @@ function render() {
     ["Pending", pending],
   ].map(([l, v]) => `<article class="kpi"><span>${l}</span><strong>${v}</strong></article>`).join("");
   $("#webinarKpis").innerHTML = [
-    metricCard("Registrations", s1.registrations),
-    metricCard("Bundle buyers", s1.bundles),
-    metricCard("Course buyers", s1.courses),
-    metricCard("Bundle conversion", `${(s1.bundleConv * 100).toFixed(1).replace(/\.0$/, "")}%`),
-    metricCard("Course conversion", `${(s1.courseConv * 100).toFixed(1).replace(/\.0$/, "")}%`),
+    metricCard("Registrations", selectedStats.registrations),
+    metricCard("Bundle buyers", selectedStats.bundles),
+    metricCard("Course buyers", selectedStats.courses),
+    metricCard("Bundle conversion", pct(selectedStats.bundleConv)),
+    metricCard("Course conversion", pct(selectedStats.courseConv)),
   ].join("");
   $("#historyKpis").innerHTML = [
-    metricCard("Registrations", s2.registrations),
-    metricCard("Bundle buyers", s2.bundles),
-    metricCard("Course buyers", s2.courses),
-    metricCard("Bundle conversion", `${(s2.bundleConv * 100).toFixed(1).replace(/\.0$/, "")}%`),
-    metricCard("Course conversion", `${(s2.courseConv * 100).toFixed(1).replace(/\.0$/, "")}%`),
+    metricCard("Registrations", history.registrations),
+    metricCard("Bundle buyers", history.bundles),
+    metricCard("Course buyers", history.courses),
+    metricCard("Bundle conversion", pct(history.registrations ? history.bundles / history.registrations : 0)),
+    metricCard("Course conversion", pct(history.registrations ? history.courses / history.registrations : 0)),
   ].join("");
   chart([
     { label: "Webinar", value: split("Webinar").reduce((s, r) => s + num(r.amount), 0) },
