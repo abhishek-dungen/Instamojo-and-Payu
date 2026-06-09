@@ -1,11 +1,9 @@
 const $ = (s) => document.querySelector(s);
 const money = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 });
-const state = { rows: [], summary: null, filters: { q: "", status: "", category: "", bucket: "", from: "", to: "" }, selected: new Set() };
+const state = { rows: [], summary: null, filters: { q: "", status: "", category: "", bucket: "", from: "", to: "" } };
 
 const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const num = (v) => Number(v || 0);
-const catClass = (v) => `tag ${v === "Webinar" ? "webinar" : v === "Bundle" ? "bundle" : v === "Course" ? "course" : "other"}`;
-const statusClass = (v) => `tag ${String(v || "").toLowerCase()}`;
 
 async function loadJson(url) {
   const res = await fetch(url, { cache: "no-store" });
@@ -29,17 +27,11 @@ function filterRows() {
 function chart(items, id, color) {
   const w = 520, h = 220, pad = 26, barW = Math.max(28, (w - pad * 2) / Math.max(1, items.length) - 10);
   const max = Math.max(...items.map((x) => x.value), 1);
-  const bars = items.map((x, i) => {
+  $(id).innerHTML = `<svg viewBox="0 0 ${w} ${h}" class="svg">${items.map((x, i) => {
     const bh = ((h - pad * 2 - 28) * x.value) / max;
     const x0 = pad + i * (barW + 10);
-    return `
-      <g>
-        <rect x="${x0}" y="${h - pad - bh - 18}" width="${barW}" height="${bh}" rx="12" fill="${color}"/>
-        <text x="${x0 + barW / 2}" y="${h - 8}" text-anchor="middle" fill="#9db0d0" font-size="11">${esc(x.label)}</text>
-        <text x="${x0 + barW / 2}" y="${h - pad - bh - 28}" text-anchor="middle" fill="#eaf2ff" font-size="11" font-weight="700">${x.value}</text>
-      </g>`;
-  }).join("");
-  $(id).innerHTML = `<svg viewBox="0 0 ${w} ${h}" class="svg">${bars}</svg>`;
+    return `<g><rect x="${x0}" y="${h - pad - bh - 18}" width="${barW}" height="${bh}" rx="12" fill="${color}"/><text x="${x0 + barW / 2}" y="${h - 8}" text-anchor="middle" fill="#9db0d0" font-size="11">${esc(x.label)}</text><text x="${x0 + barW / 2}" y="${h - pad - bh - 28}" text-anchor="middle" fill="#eaf2ff" font-size="11" font-weight="700">${x.value}</text></g>`;
+  }).join("")}</svg>`;
 }
 
 function applyOptions(id, values) {
@@ -70,47 +62,41 @@ function download(name, text, type = "text/plain") {
 
 function render() {
   const rows = filterRows();
-  const sel = rows.filter((r) => state.selected.has(r.transaction));
   const total = rows.reduce((s, r) => s + num(r.amount), 0);
-  const collected = rows.filter((r) => /^(completed|credit|success)$/i.test(r.status)).reduce((s, r) => s + num(r.amount), 0);
-  const completed = rows.filter((r) => /^(completed|credit|success)$/i.test(r.status)).length;
+  const collected = rows.filter((r) => /^(completed|credit|success|succeeded)$/i.test(r.status)).reduce((s, r) => s + num(r.amount), 0);
+  const completed = rows.filter((r) => /^(completed|credit|success|succeeded)$/i.test(r.status)).length;
   const pending = rows.filter((r) => /^(pending|initiated)$/i.test(r.status)).length;
-  const course = rows.filter((r) => r.category === "Course");
-  const webinar = rows.filter((r) => r.category === "Webinar");
-  const bundle = rows.filter((r) => r.category === "Bundle");
+  const split = (k) => rows.filter((r) => r.category === k);
   $("#kpis").innerHTML = [
     ["Transactions", rows.length],
     ["Collected", money.format(collected)],
     ["Requested", money.format(total)],
     ["Completed", `${completed} (${rows.length ? Math.round(completed / rows.length * 100) : 0}%)`],
-    ["Webinar", `${webinar.length} / ${money.format(webinar.reduce((s, r) => s + num(r.amount), 0))}`],
-    ["Bundle", `${bundle.length} / ${money.format(bundle.reduce((s, r) => s + num(r.amount), 0))}`],
-    ["Course", `${course.length} / ${money.format(course.reduce((s, r) => s + num(r.amount), 0))}`],
+    ["Webinar", `${split("Webinar").length} / ${money.format(split("Webinar").reduce((s, r) => s + num(r.amount), 0))}`],
+    ["Bundle", `${split("Bundle").length} / ${money.format(split("Bundle").reduce((s, r) => s + num(r.amount), 0))}`],
+    ["Course", `${split("Course").length} / ${money.format(split("Course").reduce((s, r) => s + num(r.amount), 0))}`],
     ["Pending", pending],
   ].map(([l, v]) => `<article class="kpi"><span>${l}</span><strong>${v}</strong></article>`).join("");
-  const byStatus = Object.entries(rows.reduce((m, r) => ((m[r.status] = (m[r.status] || 0) + 1), m), {})).map(([label, value]) => ({ label, value }));
-  const byCategory = [
-    { label: "Webinar", value: webinar.reduce((s, r) => s + num(r.amount), 0) },
-    { label: "Bundle", value: bundle.reduce((s, r) => s + num(r.amount), 0) },
-    { label: "Course", value: course.reduce((s, r) => s + num(r.amount), 0) },
+  chart([
+    { label: "Webinar", value: split("Webinar").reduce((s, r) => s + num(r.amount), 0) },
+    { label: "Bundle", value: split("Bundle").reduce((s, r) => s + num(r.amount), 0) },
+    { label: "Course", value: split("Course").reduce((s, r) => s + num(r.amount), 0) },
     { label: "Other", value: rows.filter((r) => r.category === "Other").reduce((s, r) => s + num(r.amount), 0) },
-  ].filter((x) => x.value > 0);
-  chart(byCategory, "#categoryChart", "#74d6ff");
-  chart(byStatus, "#statusChart", "#8cffc3");
-  $("#summaryLine").textContent = `Showing ${rows.length} of ${state.rows.length} transactions. Selected ${sel.length}.`;
+  ].filter((x) => x.value > 0), "#categoryChart", "#74d6ff");
+  chart(Object.entries(rows.reduce((m, r) => ((m[r.status] = (m[r.status] || 0) + 1), m), {})).map(([label, value]) => ({ label, value })), "#statusChart", "#8cffc3");
+  $("#summaryLine").textContent = `Showing ${rows.length} of ${state.rows.length} transactions.`;
   $("#table").innerHTML = rows.map((r) => `
-    <tr class="${state.selected.has(r.transaction) ? "selected" : ""}">
-      <td><input type="checkbox" data-id="${esc(r.transaction)}" ${state.selected.has(r.transaction) ? "checked" : ""}></td>
+    <tr>
+      <td></td>
       <td>${esc(r.date || "")}</td>
       <td><strong>${esc(r.name || "")}</strong><div class="muted">${esc(r.purpose || "")}</div></td>
       <td class="amount">${money.format(num(r.amount))}</td>
-      <td><span class="${catClass(r.category)}">${esc(r.category)}</span></td>
-      <td><span class="${statusClass(r.status)}">${esc(r.status)}</span></td>
+      <td><span class="tag ${esc(String(r.category || "other").toLowerCase())}">${esc(r.category)}</span></td>
+      <td><span class="tag ${esc(String(r.status || "").toLowerCase())}">${esc(r.status)}</span></td>
       <td>${esc(r.phone || "")}</td>
       <td>${esc(r.email || "")}</td>
       <td class="mono">${esc(r.transaction || "")}</td>
     </tr>`).join("") || `<tr><td colspan="9" class="empty">No matching payments</td></tr>`;
-  $("#selectedCount").textContent = sel.length ? `${sel.length} selected` : "No selection";
   $("#refreshState").textContent = state.summary?.generated_at ? `Updated ${new Date(state.summary.generated_at).toLocaleString()}` : "Loaded";
 }
 
@@ -120,7 +106,6 @@ async function refreshData() {
     const [data, summary] = await Promise.all([loadJson("./data/transactions.json"), loadJson("./data/summary.json")]);
     state.rows = data;
     state.summary = summary;
-    state.selected.clear();
     applyOptions("#status", state.rows.map((r) => r.status));
     applyOptions("#category", state.rows.map((r) => r.category));
     applyOptions("#bucket", state.rows.map((r) => r.amount_bucket));
@@ -144,36 +129,17 @@ async function refreshData() {
   });
 });
 
-$("#table").addEventListener("change", (e) => {
-  if (e.target.matches('input[type="checkbox"]')) {
-    const id = e.target.dataset.id;
-    if (e.target.checked) state.selected.add(id); else state.selected.delete(id);
-    render();
-  }
-});
-
-$("#selectVisible").addEventListener("click", () => {
-  filterRows().forEach((r) => state.selected.add(r.transaction));
-  render();
-});
-$("#clearSelection").addEventListener("click", () => { state.selected.clear(); render(); });
-$("#exportSelected").addEventListener("click", () => {
-  const rows = state.rows.filter((r) => state.selected.has(r.transaction));
-  if (!rows.length) return;
-  download("instamojo-selected.csv", csv(rows), "text/csv");
-});
 $("#exportAll").addEventListener("click", () => {
   if (!state.rows.length) return;
   download("instamojo-all-successful-payments.csv", csv(state.rows), "text/csv");
 });
-$("#exportVisible").addEventListener("click", () => download("instamojo-filtered.csv", csv(filterRows()), "text/csv"));
 $("#reload").addEventListener("click", refreshData);
 $("#serverRefresh").addEventListener("click", async () => {
   try {
     const res = await fetch("/api/refresh", { method: "POST" });
     if (!res.ok) throw new Error(await res.text());
     await refreshData();
-  } catch (e) {
+  } catch {
     $("#refreshState").textContent = "Server refresh unavailable here.";
   }
 });
