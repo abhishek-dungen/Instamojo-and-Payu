@@ -49,8 +49,12 @@ function applyOptions(id, values) {
 
 function csv(rows) {
   const cols = ["source","transaction","request_id","status","amount","category","amount_bucket","name","phone","email","purpose","bank_name","mode","bank_ref_num","payment_gateway","date","day","time","created_at","updated_at","longurl","shorturl","redirect_url","webhook","instrument_type","action","error_code","source_txn_status"];
-  const q = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
-  return [cols.join(","), ...rows.map((r) => cols.map((c) => q(r[c])).join(","))].join("\n");
+  const q = (v, c) => {
+    let s = String(v ?? "");
+    if (c === "phone" && s) s = `\t${s}`;
+    return `"${s.replace(/"/g, '""')}"`;
+  };
+  return [cols.join(","), ...rows.map((r) => cols.map((c) => q(r[c], c)).join(","))].join("\n");
 }
 
 function download(name, text, type = "text/plain") {
