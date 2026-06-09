@@ -24,6 +24,9 @@ button.ghost{background:transparent;color:var(--text);border-color:var(--line);b
 .kpi strong{font-size:20px;line-height:1.15}
 .controls{display:grid;grid-template-columns:2.2fr 1fr 1fr 1fr 1fr 1fr;gap:12px;padding:14px}
 input,select{width:100%;border-radius:14px;border:1px solid var(--line);background:#08111a;color:var(--text);padding:13px 14px;outline:none}
+.webinar-panel{padding:16px;margin-top:14px}
+.webinar-panel select{margin-top:6px;max-width:420px}
+.stat-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-top:14px}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0}
 .chart-card{padding:16px}
 .panel-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
@@ -51,5 +54,5 @@ tr.selected td{background:rgba(140,255,195,.06)}
 .tag.completed,.tag.credit,.tag.success{background:rgba(140,255,195,.16);color:#bffff0}
 .tag.pending,.tag.initiated{background:rgba(255,206,115,.16);color:#ffe4a7}
 .tag.failed,.tag.failure{background:rgba(255,120,120,.16);color:#ffc7c7}
-@media (max-width:1200px){.kpis{grid-template-columns:repeat(4,1fr)}.controls{grid-template-columns:1fr 1fr 1fr}.grid,.toolbar{grid-template-columns:1fr}.hero{align-items:start}.hero-right{align-items:flex-start}}
-@media (max-width:720px){.app{padding:16px}h1{font-size:40px}.kpis{grid-template-columns:repeat(2,1fr)}.controls{grid-template-columns:1fr}}
+@media (max-width:1200px){.kpis{grid-template-columns:repeat(4,1fr)}.controls{grid-template-columns:1fr 1fr 1fr}.grid,.toolbar{grid-template-columns:1fr}.hero{align-items:start}.hero-right{align-items:flex-start}.stat-grid{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:720px){.app{padding:16px}h1{font-size:40px}.kpis{grid-template-columns:repeat(2,1fr)}.controls{grid-template-columns:1fr}.stat-grid{grid-template-columns:1fr}}
