@@ -1,6 +1,7 @@
 const $ = (s) => document.querySelector(s);
 const money = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 });
-const state = { rows: [], summary: null, filters: { q: "", source: "", category: "", amount: "", date: "", day: "", webinar: "" } };
+const filterFields = ["source", "category", "amount", "date", "day"];
+const state = { rows: [], summary: null, filters: { q: "", source: [], category: [], amount: [], date: [], day: [], webinar: "" }, ui: { open: null, search: {} } };
 
 const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const num = (v) => Number(v || 0);
@@ -110,16 +111,17 @@ async function loadJson(url) {
 }
 
 const rowText = (r) => [r.transaction, r.name, r.phone, r.email, r.source, r.category, r.amount, r.date, r.day, r.time, r.request_id, r.status, r.amount_bucket, r.purpose].join(" ").toLowerCase();
+const uniq = (v) => [...new Set(v.filter((x) => x !== "" && x !== null && x !== undefined).map((x) => String(x)))].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 
 function filterRows() {
   const f = state.filters;
   return state.rows.filter((r) => {
     if (f.q && !rowText(r).includes(f.q)) return false;
-    if (f.source && r.source !== f.source) return false;
-    if (f.category && r.category !== f.category) return false;
-    if (f.amount && String(r.amount) !== f.amount) return false;
-    if (f.date && r.date !== f.date) return false;
-    if (f.day && r.day !== f.day) return false;
+    if (f.source.length && !f.source.includes(String(r.source || ""))) return false;
+    if (f.category.length && !f.category.includes(String(r.category || ""))) return false;
+    if (f.amount.length && !f.amount.includes(String(r.amount || ""))) return false;
+    if (f.date.length && !f.date.includes(String(r.date || ""))) return false;
+    if (f.day.length && !f.day.includes(String(r.day || ""))) return false;
     return true;
   });
 }
@@ -134,23 +136,78 @@ function chart(items, id, color) {
   }).join("")}</svg>`;
 }
 
-function applyOptions(id, values) {
-  const el = $(id);
-  const current = el.value;
-  [...new Set(values)].filter((v) => v !== "" && v !== null && v !== undefined).sort().forEach((v) => {
-    if ([...el.options].some((o) => o.value === v)) return;
-    const opt = document.createElement("option");
-    opt.value = v; opt.textContent = v; el.appendChild(opt);
-  });
-  el.value = current;
-}
-
 function applyWebinarOptions() {
   const el = $("#webinar");
   const current = el.value;
   const dates = webinarDates();
   el.innerHTML = `<option value="">All webinars</option>${dates.map((d) => `<option value="${d}">${d}</option>`).join("")}`;
   el.value = current && [...el.options].some((o) => o.value === current) ? current : (dates[0] || "");
+}
+
+function filterOptions(field) {
+  const q = (state.ui.search[field] || "").trim().toLowerCase();
+  return uniq(state.rows.map((r) => String(r[field] || ""))).filter((v) => !q || v.toLowerCase().includes(q));
+}
+
+function setFilter(field, values) {
+  state.filters[field] = [...new Set(values.map(String))];
+  renderFilterWidgets();
+  render();
+}
+
+function toggleFilter(field, value) {
+  const cur = state.filters[field];
+  setFilter(field, cur.includes(value) ? cur.filter((v) => v !== value) : [...cur, value]);
+}
+
+function clearFilter(field) {
+  state.filters[field] = [];
+  state.ui.search[field] = "";
+  renderFilterWidgets();
+  render();
+}
+
+function filterBadge(field) {
+  const cur = state.filters[field];
+  return cur.length ? `${cur.length} selected` : "All";
+}
+
+function renderFilterMenu(field) {
+  const menu = $(`[data-menu="${field}"]`);
+  if (!menu) return;
+  const options = filterOptions(field);
+  const box = menu.querySelector(".filter-options");
+  if (box) box.innerHTML = options.map((v) => {
+    const checked = state.filters[field].includes(v) ? "checked" : "";
+    return `<label class="filter-option"><input type="checkbox" data-field="${field}" data-value="${esc(v)}" ${checked}><span>${esc(v)}</span></label>`;
+  }).join("") || `<div class="empty small">No matches</div>`;
+}
+
+function renderFilterWidgets() {
+  const wrap = $("#filterWidgets");
+  if (!wrap) return;
+  wrap.innerHTML = filterFields.map((field) => {
+    const cap = field[0].toUpperCase() + field.slice(1);
+    const options = filterOptions(field);
+    const items = options.map((v) => {
+      const checked = state.filters[field].includes(v) ? "checked" : "";
+      return `<label class="filter-option"><input type="checkbox" data-field="${field}" data-value="${esc(v)}" ${checked}><span>${esc(v)}</span></label>`;
+    }).join("") || `<div class="empty small">No matches</div>`;
+    return `
+      <div class="filter-widget" data-field="${field}">
+        <button type="button" class="filter-trigger" data-action="toggle" data-field="${field}">
+          <span>${cap}</span><strong>${filterBadge(field)}</strong>
+        </button>
+        <div class="filter-menu ${state.ui.open === field ? "open" : ""}" data-menu="${field}" ${state.ui.open === field ? "" : "hidden"}>
+          <input class="filter-search" data-search="${field}" placeholder="Search ${cap.toLowerCase()}" value="${esc(state.ui.search[field] || "")}">
+          <div class="filter-menu-actions">
+            <button type="button" class="ghost" data-action="select-all" data-field="${field}">Select all</button>
+            <button type="button" class="ghost" data-action="clear" data-field="${field}">Clear</button>
+          </div>
+          <div class="filter-options">${items}</div>
+        </div>
+      </div>`;
+  }).join("");
 }
 
 function csv(rows) {
@@ -215,25 +272,65 @@ async function refreshData() {
     const [rows, summary] = await Promise.all([loadJson("./data/all/transactions.json"), loadJson("./data/all/summary.json")]);
     state.rows = rows;
     state.summary = summary;
-    applyOptions("#source", state.rows.map((r) => r.source));
-    applyOptions("#category", state.rows.map((r) => r.category));
-    applyOptions("#amount", state.rows.map((r) => String(r.amount)));
-    applyOptions("#date", state.rows.map((r) => r.date));
-    applyOptions("#day", state.rows.map((r) => r.day));
     applyWebinarOptions();
+    renderFilterWidgets();
     render();
   } catch {
     $("#refreshState").textContent = "No combined data file yet. Run sync first.";
   }
 }
 
-["q","source","category","amount","date","day","webinar"].forEach((id) => {
-  const el = $(`#${id}`);
-  const evt = id === "q" ? "input" : "change";
-  el.addEventListener(evt, () => {
-    state.filters[id] = id === "q" ? el.value.trim().toLowerCase() : el.value;
-    render();
-  });
+$("#q").addEventListener("input", (e) => { state.filters.q = e.target.value.trim().toLowerCase(); render(); });
+$("#webinar").addEventListener("change", (e) => { state.filters.webinar = e.target.value; render(); });
+$("#clearFilters").addEventListener("click", () => {
+  state.filters = { q: "", source: [], category: [], amount: [], date: [], day: [], webinar: $("#webinar").value };
+  state.ui.search = {};
+  renderFilterWidgets();
+  $("#q").value = "";
+  render();
+});
+
+$("#filterWidgets").addEventListener("click", (e) => {
+  const a = e.target.closest("[data-action]");
+  if (!a) return;
+  const field = a.dataset.field;
+  const action = a.dataset.action;
+  if (action === "toggle") {
+    state.ui.open = state.ui.open === field ? null : field;
+    renderFilterWidgets();
+    return;
+  }
+  if (action === "select-all") {
+    setFilter(field, filterOptions(field));
+    state.ui.open = field;
+    renderFilterWidgets();
+    return;
+  }
+  if (action === "clear") {
+    clearFilter(field);
+    state.ui.open = field;
+    renderFilterWidgets();
+  }
+});
+
+$("#filterWidgets").addEventListener("input", (e) => {
+  const input = e.target.closest("[data-search]");
+  if (!input) return;
+  state.ui.search[input.dataset.search] = input.value;
+  renderFilterMenu(input.dataset.search);
+});
+
+$("#filterWidgets").addEventListener("change", (e) => {
+  const cb = e.target.closest('input[type="checkbox"][data-field][data-value]');
+  if (!cb) return;
+  toggleFilter(cb.dataset.field, cb.dataset.value);
+});
+
+document.addEventListener("click", (e) => {
+  if (!e.target.closest(".filter-widget")) {
+    state.ui.open = null;
+    renderFilterWidgets();
+  }
 });
 
 $("#exportAll").addEventListener("click", () => {

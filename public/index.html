@@ -26,15 +26,6 @@
       </div>
     </header>
 
-    <section class="panel controls">
-      <input id="q" placeholder="Quick search: name, phone, email, source, category, amount, date, day, time" />
-      <select id="source"><option value="">Source</option></select>
-      <select id="category"><option value="">Category</option></select>
-      <select id="amount"><option value="">Amount</option></select>
-      <select id="date"><option value="">Date</option></select>
-      <select id="day"><option value="">Day</option></select>
-    </section>
-
     <section class="panel webinar-panel">
       <div class="panel-head"><h2>Webinar analysis</h2><span>single webinar</span></div>
       <select id="webinar"><option value="">All webinars</option></select>
@@ -49,6 +40,14 @@
     <section class="panel toolbar">
       <div class="toolbar-actions">
         <button class="ghost" id="exportAll">Export all CSV</button>
+      </div>
+    </section>
+
+    <section class="panel filters-panel">
+      <input id="q" class="search-box" placeholder="Quick search: name, phone, email, source, category, amount, date, day, time" />
+      <div id="filterWidgets" class="filter-grid"></div>
+      <div class="filter-actions">
+        <button class="ghost" id="clearFilters">Clear all</button>
       </div>
     </section>
 
