@@ -162,6 +162,10 @@ $("#exportSelected").addEventListener("click", () => {
   if (!rows.length) return;
   download("instamojo-selected.csv", csv(rows), "text/csv");
 });
+$("#exportAll").addEventListener("click", () => {
+  if (!state.rows.length) return;
+  download("instamojo-all-successful-payments.csv", csv(state.rows), "text/csv");
+});
 $("#exportVisible").addEventListener("click", () => download("instamojo-filtered.csv", csv(filterRows()), "text/csv"));
 $("#reload").addEventListener("click", refreshData);
 $("#serverRefresh").addEventListener("click", async () => {
