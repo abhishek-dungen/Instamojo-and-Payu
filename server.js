@@ -13,7 +13,7 @@ const providers = {
   all: {
     rowsFile: path.join(dataDir, "all", "transactions.json"),
     summaryFile: path.join(dataDir, "all", "summary.json"),
-    csvName: "all-successful-payments.csv",
+    csvName: "all-transactions.csv",
   },
   instamojo: {
     rowsFile: path.join(dataDir, "transactions.json"),
