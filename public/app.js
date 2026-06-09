@@ -25,13 +25,13 @@ function isLiveWebinarRow(r) {
 }
 
 function webinarRows(date) {
-  return state.rows.filter((r) => isLiveWebinarRow(r) && (!date || r.date === date));
+  return state.rows.filter((r) => (!date || r.date === date));
 }
 
 function webinarStats(rows) {
   const regs = rows.filter((r) => num(r.amount) === 99 || num(r.amount) === 198).length;
   const bundle = rows.filter((r) => num(r.amount) === 198).length;
-  const course = rows.filter((r) => num(r.amount) > 500).length;
+  const course = rows.filter((r) => isLiveWebinarRow(r) && num(r.amount) > 500).length;
   return {
     registrations: regs,
     bundles: bundle,
@@ -117,7 +117,7 @@ function render() {
   const rows = filterRows();
   const selectedWebinar = $("#webinar")?.value || "";
   const selectedRows = webinarRows(selectedWebinar);
-  const historyRows = webinarRows("");
+  const historyRows = [...new Set(state.rows.filter(isLiveWebinarRow).map((r) => r.date))].flatMap((d) => webinarRows(d));
   const total = rows.reduce((s, r) => s + num(r.amount), 0);
   const collected = rows.filter(isSuccess).reduce((s, r) => s + num(r.amount), 0);
   const completed = rows.filter(isSuccess).length;
