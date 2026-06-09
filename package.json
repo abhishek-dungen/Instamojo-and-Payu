@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "start": "node server.js",
-    "sync": "node scripts/sync.mjs"
+    "sync": "node scripts/sync.mjs",
+    "sync:payu": "node scripts/sync-payu.mjs"
   },
   "dependencies": {
     "firebase-admin": "^14.0.0"

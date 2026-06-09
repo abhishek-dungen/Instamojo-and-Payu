@@ -1,16 +1,24 @@
 const $ = (s) => document.querySelector(s);
 const money = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 });
-const state = { rows: [], summary: null, filters: { q: "", status: "", category: "", bucket: "", from: "", to: "" } };
+const providers = {
+  payu: { label: "PayU", dir: "./data/payu", file: "payu-all-successful-payments.csv" },
+  instamojo: { label: "Instamojo", dir: "./data", file: "instamojo-all-successful-payments.csv" },
+};
+const state = { provider: "payu", rows: [], summary: null, filters: { q: "", status: "", category: "", bucket: "", from: "", to: "" } };
 
 const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const num = (v) => Number(v || 0);
-const isSuccess = (r) => /^(completed|credit|success|succeeded)$/i.test(String(r?.status || ""));
-const isInstamojo = (r) => String(r?.source || "").toLowerCase() === "instamojo";
+const isSuccess = (r) => /^(completed|credit|success|succeeded|captured)$/i.test(String(r?.status || ""));
 
 async function loadJson(url) {
   const res = await fetch(url, { cache: "no-store" });
   if (!res.ok) throw new Error(url);
   return res.json();
+}
+
+function paths() {
+  const p = providers[state.provider];
+  return { rows: `${p.dir}/transactions.json`, summary: `${p.dir}/summary.json` };
 }
 
 function filterRows() {
@@ -48,7 +56,7 @@ function applyOptions(id, values) {
 }
 
 function csv(rows) {
-  const cols = ["transaction","request_id","status","amount","category","amount_bucket","name","phone","email","purpose","source","instrument_type","date","day","time","created_at","updated_at","longurl","shorturl","redirect_url","webhook"];
+  const cols = ["transaction","request_id","status","amount","category","amount_bucket","name","phone","email","purpose","source","bank_name","mode","bank_ref_num","payment_gateway","date","day","time","created_at","updated_at","longurl","shorturl","redirect_url","webhook","instrument_type","action","error_code","source_txn_status"];
   const q = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
   return [cols.join(","), ...rows.map((r) => cols.map((c) => q(r[c])).join(","))].join("\n");
 }
@@ -69,6 +77,8 @@ function render() {
   const completed = rows.filter(isSuccess).length;
   const pending = rows.filter((r) => /^(pending|initiated)$/i.test(r.status)).length;
   const split = (k) => rows.filter((r) => r.category === k);
+  $("#providerLabel").textContent = providers[state.provider].label;
+  $("#providerView").value = providers[state.provider].label;
   $("#kpis").innerHTML = [
     ["Transactions", rows.length],
     ["Collected", money.format(collected)],
@@ -105,8 +115,9 @@ function render() {
 async function refreshData() {
   $("#refreshState").textContent = "Loading...";
   try {
-    const [data, summary] = await Promise.all([loadJson("./data/transactions.json"), loadJson("./data/summary.json")]);
-    state.rows = data;
+    const base = state.provider === "payu" ? "./data/payu" : "./data";
+    const [rows, summary] = await Promise.all([loadJson(`${base}/transactions.json`), loadJson(`${base}/summary.json`)]);
+    state.rows = rows;
     state.summary = summary;
     applyOptions("#status", state.rows.map((r) => r.status));
     applyOptions("#category", state.rows.map((r) => r.category));
@@ -131,15 +142,22 @@ async function refreshData() {
   });
 });
 
+$("#provider").addEventListener("change", async (e) => {
+  state.provider = e.target.value;
+  state.filters = { q: "", status: "", category: "", bucket: "", from: "", to: "" };
+  ["#q","#status","#category","#bucket","#from","#to"].forEach((sel) => { const el = $(sel); if (el) el.value = ""; });
+  await refreshData();
+});
+
 $("#exportAll").addEventListener("click", () => {
   if (!state.rows.length) return;
-  const rows = state.rows.filter(isSuccess).filter(isInstamojo);
-  download("instamojo-all-successful-payments.csv", csv(rows), "text/csv");
+  const rows = state.rows.filter(isSuccess);
+  download(`${providers[state.provider].file}`, csv(rows), "text/csv");
 });
 $("#reload").addEventListener("click", refreshData);
 $("#serverRefresh").addEventListener("click", async () => {
   try {
-    const res = await fetch("/api/refresh", { method: "POST" });
+    const res = await fetch(`/api/refresh?provider=${state.provider}`, { method: "POST" });
     if (!res.ok) throw new Error(await res.text());
     await refreshData();
   } catch {
