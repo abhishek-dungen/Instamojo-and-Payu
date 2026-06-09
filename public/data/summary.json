@@ -1,47 +1,51 @@
 {
   "totals": {
-    "count": 1383,
-    "collected": 554604,
-    "requested": 554604,
-    "completed": 1383,
+    "count": 1335,
+    "collected": 537048,
+    "requested": 537048,
+    "completed": 1335,
     "pending": 0,
     "failed": 0,
-    "webinarCount": 702,
-    "bundleCount": 452,
-    "courseCount": 187,
-    "otherCount": 42,
-    "webinarAmount": 69498,
-    "bundleAmount": 89496,
-    "courseAmount": 393981,
-    "otherAmount": 1629,
-    "avgTicket": 401.01518438177874,
+    "webinarCount": 678,
+    "bundleCount": 436,
+    "courseCount": 181,
+    "otherCount": 40,
+    "webinarAmount": 67122,
+    "bundleAmount": 86328,
+    "courseAmount": 381987,
+    "otherAmount": 1611,
+    "avgTicket": 402.2831460674157,
     "completionRate": 1
   },
   "byStatus": [
     {
       "label": "Completed",
-      "value": 1383
+      "value": 1335
     }
   ],
   "byCategory": [
     {
       "label": "Webinar",
-      "value": 702
+      "value": 678
     },
     {
       "label": "Bundle",
-      "value": 452
+      "value": 436
     },
     {
       "label": "Course",
-      "value": 187
+      "value": 181
     },
     {
       "label": "Other",
-      "value": 42
+      "value": 40
     }
   ],
   "byDate": [
+    {
+      "label": "19-Nov-2025",
+      "value": 99
+    },
     {
       "label": "20-Nov-2025",
       "value": 1999
@@ -89,10 +93,6 @@
     {
       "label": "11-Dec-2025",
       "value": 198
-    },
-    {
-      "label": "12-Dec-2025",
-      "value": 99
     },
     {
       "label": "13-Dec-2025",
@@ -208,7 +208,7 @@
     },
     {
       "label": "11-Jan-2026",
-      "value": 12984
+      "value": 99
     },
     {
       "label": "12-Jan-2026",
@@ -324,11 +324,11 @@
     },
     {
       "label": "10-Feb-2026",
-      "value": 1701
+      "value": 297
     },
     {
       "label": "11-Feb-2026",
-      "value": 1386
+      "value": 594
     },
     {
       "label": "12-Feb-2026",
@@ -388,11 +388,11 @@
     },
     {
       "label": "26-Feb-2026",
-      "value": 3186
+      "value": 3087
     },
     {
       "label": "27-Feb-2026",
-      "value": 1881
+      "value": 1980
     },
     {
       "label": "28-Feb-2026",
@@ -444,7 +444,7 @@
     },
     {
       "label": "12-Mar-2026",
-      "value": 2970
+      "value": 396
     },
     {
       "label": "13-Mar-2026",
@@ -536,11 +536,11 @@
     },
     {
       "label": "10-May-2026",
-      "value": 31782
+      "value": 31683
     },
     {
       "label": "11-May-2026",
-      "value": 792
+      "value": 297
     },
     {
       "label": "12-May-2026",
@@ -656,12 +656,16 @@
     },
     {
       "label": "09-Jun-2026",
-      "value": 2178
+      "value": 2673
+    },
+    {
+      "label": "10-Jun-2026",
+      "value": 198
     }
   ],
   "peakDay": {
     "label": "01-Mar-2026",
     "value": 46980
   },
-  "generated_at": "2026-06-09T20:30:51.478Z"
+  "generated_at": "2026-06-09T21:10:44.033Z"
 }
