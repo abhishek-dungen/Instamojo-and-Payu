@@ -272,7 +272,6 @@ function render() {
   renderHeaderFilters();
   $("#table").innerHTML = rows.map((r) => `
     <tr>
-      <td class="mono">${esc(r.transaction || "")}</td>
       <td><strong>${esc(r.name || "")}</strong></td>
       <td>${esc(r.phone || "")}</td>
       <td>${esc(r.email || "")}</td>
