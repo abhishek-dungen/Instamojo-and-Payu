@@ -12,7 +12,6 @@
       <div>
         <p class="eyebrow" id="providerLabel">Combined</p>
         <h1>Payments dashboard</h1>
-        <p class="lede">99 = webinar, 198 = bundle, >500 = course.</p>
         <p class="lede muted" id="refreshState">Loading</p>
       </div>
       <div class="hero-right">
@@ -26,8 +25,6 @@
         </div>
       </div>
     </header>
-
-    <section class="kpis" id="kpis"></section>
 
     <section class="panel controls">
       <select id="source"><option value="">All sources</option><option value="Instamojo">Instamojo</option><option value="PayU">PayU</option><option value="Cashfree">Cashfree</option></select>
@@ -50,19 +47,7 @@
       <div id="historyKpis" class="stat-grid"></div>
     </section>
 
-    <section class="grid">
-      <article class="panel chart-card">
-        <div class="panel-head"><h2>Revenue by category</h2><span>₹ split</span></div>
-        <div id="categoryChart" class="chart"></div>
-      </article>
-      <article class="panel chart-card">
-        <div class="panel-head"><h2>Transactions by status</h2><span>count</span></div>
-        <div id="statusChart" class="chart"></div>
-      </article>
-    </section>
-
     <section class="panel toolbar">
-      <div id="summaryLine" class="muted"></div>
       <div class="toolbar-actions">
         <button class="ghost" id="exportAll">Export all CSV</button>
       </div>

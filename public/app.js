@@ -176,22 +176,7 @@ function render() {
   const selectedWebinar = $("#webinar")?.value || "";
   const selectedStats = selectedWebinar ? webinarStats(selectedWebinar) : { registrations: 0, bundles: 0, courses: 0, bundleConv: 0, courseConv: 0 };
   const history = historicalStats();
-  const total = rows.reduce((s, r) => s + num(r.amount), 0);
-  const collected = rows.filter(isSuccess).reduce((s, r) => s + num(r.amount), 0);
-  const completed = rows.filter(isSuccess).length;
-  const pending = rows.filter((r) => /^(pending|initiated)$/i.test(r.status)).length;
-  const split = (k) => rows.filter((r) => r.category === k);
   $("#providerLabel").textContent = "Combined";
-  $("#kpis").innerHTML = [
-    ["Transactions", rows.length],
-    ["Collected", money.format(collected)],
-    ["Requested", money.format(total)],
-    ["Completed", `${completed} (${rows.length ? Math.round(completed / rows.length * 100) : 0}%)`],
-    ["Webinar", `${split("Webinar").length} / ${money.format(split("Webinar").reduce((s, r) => s + num(r.amount), 0))}`],
-    ["Bundle", `${split("Bundle").length} / ${money.format(split("Bundle").reduce((s, r) => s + num(r.amount), 0))}`],
-    ["Course", `${split("Course").length} / ${money.format(split("Course").reduce((s, r) => s + num(r.amount), 0))}`],
-    ["Pending", pending],
-  ].map(([l, v]) => `<article class="kpi"><span>${l}</span><strong>${v}</strong></article>`).join("");
   $("#webinarKpis").innerHTML = [
     metricCard("Registrations", selectedStats.registrations),
     metricCard("Bundle buyers", selectedStats.bundles),
@@ -206,14 +191,6 @@ function render() {
     metricCard("Bundle conversion", pct(history.registrations ? history.bundles / history.registrations : 0)),
     metricCard("Course conversion", pct(history.registrations ? history.courses / history.registrations : 0)),
   ].join("");
-  chart([
-    { label: "Webinar", value: split("Webinar").reduce((s, r) => s + num(r.amount), 0) },
-    { label: "Bundle", value: split("Bundle").reduce((s, r) => s + num(r.amount), 0) },
-    { label: "Course", value: split("Course").reduce((s, r) => s + num(r.amount), 0) },
-    { label: "Other", value: rows.filter((r) => r.category === "Other").reduce((s, r) => s + num(r.amount), 0) },
-  ].filter((x) => x.value > 0), "#categoryChart", "#74d6ff");
-  chart(Object.entries(rows.reduce((m, r) => ((m[r.status] = (m[r.status] || 0) + 1), m), {})).map(([label, value]) => ({ label, value })), "#statusChart", "#8cffc3");
-  $("#summaryLine").textContent = `Showing ${rows.length} of ${state.rows.length} transactions.`;
   $("#lastSync").textContent = state.summary?.generated_at ? new Date(state.summary.generated_at).toLocaleString() : "--";
   $("#table").innerHTML = rows.map((r) => `
     <tr>
