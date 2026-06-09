@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Instamojo Dashboard</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">Instamojo payments</p>
+        <h1>Payments dashboard</h1>
+        <p class="sub">Webinar 99, bundle 198, course 500+.</p>
+        <p class="sub" id="status"></p>
+      </div>
+      <div class="stats" id="stats"></div>
+    </section>
+    <section class="panel filters">
+      <input id="q" placeholder="Quick search" />
+      <select id="source"><option value="">All sources</option></select>
+      <select id="category"><option value="">All categories</option></select>
+      <select id="date"><option value="">All dates</option></select>
+      <select id="amount"><option value="">All amounts</option><option value="99">99</option><option value="198">198</option><option value="500+">500+</option><option value="other">Other</option></select>
+    </section>
+    <section class="panel">
+      <textarea id="import" rows="4" placeholder="Paste webhook JSON here"></textarea>
+      <div style="margin-top:10px;display:flex;gap:10px;align-items:center">
+        <button id="load">Load JSON</button>
+        <span class="sub" id="importStatus"></span>
+      </div>
+    </section>
+    <section class="panel">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Transaction</th><th>Name</th><th>Phone</th><th>Email</th><th>Source</th><th>Category</th><th>Amount</th><th>Date</th><th>Day</th><th>Time</th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+  <script src="/firebase-config.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>

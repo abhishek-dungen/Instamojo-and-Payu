@@ -1,0 +1,22 @@
+:root{color-scheme:dark;--bg:#08111f;--panel:#0f1a2c;--line:#20314b;--text:#e8eefc;--muted:#91a4c7;--accent:#69d2ff;--accent2:#7cffb2}
+*{box-sizing:border-box}body{margin:0;font:14px/1.4 system-ui,sans-serif;background:radial-gradient(circle at top,#10213d 0,#08111f 45%);color:var(--text)}
+.shell{max-width:1400px;margin:0 auto;padding:24px}
+.hero{display:flex;justify-content:space-between;gap:16px;align-items:end;margin-bottom:16px}
+.eyebrow{margin:0 0 6px;color:var(--accent2);text-transform:uppercase;letter-spacing:.12em;font-size:12px}
+h1{margin:0;font-size:42px;line-height:1}
+.sub{margin:10px 0 0;color:var(--muted)}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(120px,1fr));gap:10px;min-width:520px}
+.card,.panel{background:rgba(15,26,44,.88);border:1px solid var(--line);box-shadow:0 20px 50px rgba(0,0,0,.22);backdrop-filter:blur(10px);border-radius:18px}
+.card{padding:14px}.label{color:var(--muted);font-size:12px}.value{font-size:24px;font-weight:700;margin-top:4px}
+.filters{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:10px;padding:14px}
+input,select{width:100%;border:1px solid var(--line);background:#0a1322;color:var(--text);border-radius:12px;padding:12px 14px;outline:none}
+textarea{width:100%;border:1px solid var(--line);background:#0a1322;color:var(--text);border-radius:12px;padding:12px 14px;outline:none;resize:vertical}
+button{border:0;border-radius:12px;padding:12px 16px;background:linear-gradient(135deg,var(--accent2),#7c3aed);color:#fff;font-weight:700;cursor:pointer}
+.panel{margin-top:14px}
+.table-wrap{overflow:auto}
+table{width:100%;border-collapse:collapse;min-width:1100px}
+th,td{padding:12px 14px;border-bottom:1px solid rgba(32,49,75,.75);text-align:left;white-space:nowrap}
+th{position:sticky;top:0;background:#0d1728;color:#cfe0ff;font-size:12px;text-transform:uppercase;letter-spacing:.08em}
+tr:hover td{background:rgba(105,210,255,.04)}
+.amt-webinar{color:#7cffb2}.amt-bundle{color:#69d2ff}.amt-course{color:#ffd36a}
+@media (max-width:900px){.hero,.filters{grid-template-columns:1fr;display:grid}.stats{min-width:0;grid-template-columns:repeat(2,1fr)}h1{font-size:34px}}
