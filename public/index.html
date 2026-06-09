@@ -45,7 +45,6 @@
 
     <section class="panel filters-panel">
       <input id="q" class="search-box" placeholder="Quick search: name, phone, email, source, category, amount, date, day, time" />
-      <div id="filterWidgets" class="filter-grid"></div>
       <div class="filter-actions">
         <button class="ghost" id="clearFilters">Clear all</button>
       </div>
@@ -56,7 +55,7 @@
         <table>
           <thead>
             <tr>
-              <th>Transaction</th><th>Name</th><th>Phone</th><th>Email</th><th>Source</th><th>Category</th><th>Amount</th><th>Date</th><th>Day</th><th>Time</th>
+              <th>Transaction</th><th>Name</th><th>Phone</th><th>Email</th><th data-filter-header="source">Source</th><th data-filter-header="category">Category</th><th data-filter-header="amount">Amount</th><th data-filter-header="date">Date</th><th data-filter-header="day">Day</th><th>Time</th>
             </tr>
           </thead>
           <tbody id="table"></tbody>

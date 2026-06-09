@@ -151,7 +151,6 @@ function filterOptions(field) {
 
 function setFilter(field, values) {
   state.filters[field] = [...new Set(values.map(String))];
-  renderFilterWidgets();
   render();
 }
 
@@ -163,7 +162,6 @@ function toggleFilter(field, value) {
 function clearFilter(field) {
   state.filters[field] = [];
   state.ui.search[field] = "";
-  renderFilterWidgets();
   render();
 }
 
@@ -172,42 +170,63 @@ function filterBadge(field) {
   return cur.length ? `${cur.length} selected` : "All";
 }
 
-function renderFilterMenu(field) {
-  const menu = $(`[data-menu="${field}"]`);
-  if (!menu) return;
+function menuHTML(field) {
+  const cap = field[0].toUpperCase() + field.slice(1);
   const options = filterOptions(field);
-  const box = menu.querySelector(".filter-options");
-  if (box) box.innerHTML = options.map((v) => {
+  const items = options.map((v) => {
     const checked = state.filters[field].includes(v) ? "checked" : "";
     return `<label class="filter-option"><input type="checkbox" data-field="${field}" data-value="${esc(v)}" ${checked}><span>${esc(v)}</span></label>`;
   }).join("") || `<div class="empty small">No matches</div>`;
+  return `
+    <div class="filter-menu">
+      <input class="filter-search" data-search="${field}" placeholder="Search ${cap.toLowerCase()}" value="${esc(state.ui.search[field] || "")}">
+      <div class="filter-menu-actions">
+        <button type="button" class="ghost" data-action="select-all" data-field="${field}">Select all</button>
+        <button type="button" class="ghost" data-action="clear" data-field="${field}">Clear</button>
+      </div>
+      <div class="filter-options">${items}</div>
+    </div>`;
 }
 
-function renderFilterWidgets() {
-  const wrap = $("#filterWidgets");
-  if (!wrap) return;
-  wrap.innerHTML = filterFields.map((field) => {
+function portal() {
+  let el = $("#filterPortal");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "filterPortal";
+    el.className = "filter-portal";
+    document.body.appendChild(el);
+  }
+  return el;
+}
+
+function positionFilterPortal() {
+  const field = state.ui.open;
+  const p = portal();
+  if (!field) { p.innerHTML = ""; p.hidden = true; return; }
+  const btn = document.querySelector(`[data-filter-button="${field}"]`);
+  if (!btn) return;
+  const r = btn.getBoundingClientRect();
+  p.hidden = false;
+  p.style.top = `${Math.min(r.bottom + 6, window.innerHeight - 20)}px`;
+  p.style.left = `${Math.max(8, Math.min(r.left, window.innerWidth - Math.max(260, r.width) - 8))}px`;
+  p.style.width = `${Math.max(260, r.width)}px`;
+  p.innerHTML = menuHTML(field);
+  requestAnimationFrame(() => p.querySelector(`[data-search="${field}"]`)?.focus());
+}
+
+function renderHeaderFilters() {
+  document.querySelectorAll("[data-filter-header]").forEach((th) => {
+    const field = th.dataset.filterHeader;
     const cap = field[0].toUpperCase() + field.slice(1);
-    const options = filterOptions(field);
-    const items = options.map((v) => {
-      const checked = state.filters[field].includes(v) ? "checked" : "";
-      return `<label class="filter-option"><input type="checkbox" data-field="${field}" data-value="${esc(v)}" ${checked}><span>${esc(v)}</span></label>`;
-    }).join("") || `<div class="empty small">No matches</div>`;
-    return `
-      <div class="filter-widget" data-field="${field}">
-        <button type="button" class="filter-trigger" data-action="toggle" data-field="${field}">
-          <span>${cap}</span><strong>${filterBadge(field)}</strong>
+    th.innerHTML = `
+      <div class="filter-head">
+        <span>${cap}</span>
+        <button type="button" class="filter-trigger" data-action="toggle" data-field="${field}" data-filter-button="${field}">
+          <strong>${filterBadge(field)}</strong>
         </button>
-        <div class="filter-menu ${state.ui.open === field ? "open" : ""}" data-menu="${field}" ${state.ui.open === field ? "" : "hidden"}>
-          <input class="filter-search" data-search="${field}" placeholder="Search ${cap.toLowerCase()}" value="${esc(state.ui.search[field] || "")}">
-          <div class="filter-menu-actions">
-            <button type="button" class="ghost" data-action="select-all" data-field="${field}">Select all</button>
-            <button type="button" class="ghost" data-action="clear" data-field="${field}">Clear</button>
-          </div>
-          <div class="filter-options">${items}</div>
-        </div>
       </div>`;
-  }).join("");
+  });
+  positionFilterPortal();
 }
 
 function csv(rows) {
@@ -250,6 +269,7 @@ function render() {
     metricCard("Course conversion", pct(history.registrations ? history.courses / history.registrations : 0)),
   ].join("");
   $("#lastSync").textContent = state.summary?.generated_at ? new Date(state.summary.generated_at).toLocaleString() : "--";
+  renderHeaderFilters();
   $("#table").innerHTML = rows.map((r) => `
     <tr>
       <td class="mono">${esc(r.transaction || "")}</td>
@@ -273,7 +293,6 @@ async function refreshData() {
     state.rows = rows;
     state.summary = summary;
     applyWebinarOptions();
-    renderFilterWidgets();
     render();
   } catch {
     $("#refreshState").textContent = "No combined data file yet. Run sync first.";
@@ -285,53 +304,54 @@ $("#webinar").addEventListener("change", (e) => { state.filters.webinar = e.targ
 $("#clearFilters").addEventListener("click", () => {
   state.filters = { q: "", source: [], category: [], amount: [], date: [], day: [], webinar: $("#webinar").value };
   state.ui.search = {};
-  renderFilterWidgets();
   $("#q").value = "";
   render();
 });
 
-$("#filterWidgets").addEventListener("click", (e) => {
+document.addEventListener("click", (e) => {
   const a = e.target.closest("[data-action]");
   if (!a) return;
   const field = a.dataset.field;
   const action = a.dataset.action;
   if (action === "toggle") {
     state.ui.open = state.ui.open === field ? null : field;
-    renderFilterWidgets();
+    positionFilterPortal();
     return;
   }
   if (action === "select-all") {
     setFilter(field, filterOptions(field));
     state.ui.open = field;
-    renderFilterWidgets();
+    positionFilterPortal();
     return;
   }
   if (action === "clear") {
     clearFilter(field);
     state.ui.open = field;
-    renderFilterWidgets();
+    positionFilterPortal();
   }
 });
 
-$("#filterWidgets").addEventListener("input", (e) => {
+portal().addEventListener("input", (e) => {
   const input = e.target.closest("[data-search]");
   if (!input) return;
   state.ui.search[input.dataset.search] = input.value;
-  renderFilterMenu(input.dataset.search);
+  positionFilterPortal();
 });
 
-$("#filterWidgets").addEventListener("change", (e) => {
+portal().addEventListener("change", (e) => {
   const cb = e.target.closest('input[type="checkbox"][data-field][data-value]');
   if (!cb) return;
   toggleFilter(cb.dataset.field, cb.dataset.value);
 });
 
 document.addEventListener("click", (e) => {
-  if (!e.target.closest(".filter-widget")) {
+  if (!e.target.closest("#filterPortal") && !e.target.closest("[data-filter-button]")) {
     state.ui.open = null;
-    renderFilterWidgets();
+    positionFilterPortal();
   }
 });
+window.addEventListener("resize", positionFilterPortal);
+window.addEventListener("scroll", positionFilterPortal, true);
 
 $("#exportAll").addEventListener("click", () => {
   if (!state.rows.length) return;
