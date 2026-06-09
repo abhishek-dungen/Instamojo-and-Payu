@@ -1,0 +1,143 @@
+{
+  "totals": {
+    "count": 363,
+    "collected": 181699,
+    "requested": 181699,
+    "completed": 363,
+    "pending": 0,
+    "failed": 0,
+    "webinarCount": 183,
+    "bundleCount": 109,
+    "courseCount": 71,
+    "otherCount": 0,
+    "webinarAmount": 18117,
+    "bundleAmount": 21582,
+    "courseAmount": 142000,
+    "otherAmount": 0,
+    "avgTicket": 500.5482093663912,
+    "completionRate": 1
+  },
+  "byStatus": [
+    {
+      "label": "Completed",
+      "value": 363
+    }
+  ],
+  "byCategory": [
+    {
+      "label": "Webinar",
+      "value": 183
+    },
+    {
+      "label": "Bundle",
+      "value": 109
+    },
+    {
+      "label": "Course",
+      "value": 71
+    }
+  ],
+  "byDate": [
+    {
+      "label": "29-Mar-2026",
+      "value": 22000
+    },
+    {
+      "label": "31-Mar-2026",
+      "value": 99
+    },
+    {
+      "label": "01-Apr-2026",
+      "value": 594
+    },
+    {
+      "label": "02-Apr-2026",
+      "value": 1485
+    },
+    {
+      "label": "03-Apr-2026",
+      "value": 1485
+    },
+    {
+      "label": "04-Apr-2026",
+      "value": 1584
+    },
+    {
+      "label": "05-Apr-2026",
+      "value": 34475
+    },
+    {
+      "label": "06-Apr-2026",
+      "value": 2079
+    },
+    {
+      "label": "07-Apr-2026",
+      "value": 2475
+    },
+    {
+      "label": "08-Apr-2026",
+      "value": 2772
+    },
+    {
+      "label": "09-Apr-2026",
+      "value": 4059
+    },
+    {
+      "label": "10-Apr-2026",
+      "value": 1881
+    },
+    {
+      "label": "11-Apr-2026",
+      "value": 2178
+    },
+    {
+      "label": "12-Apr-2026",
+      "value": 54871
+    },
+    {
+      "label": "13-Apr-2026",
+      "value": 1683
+    },
+    {
+      "label": "14-Apr-2026",
+      "value": 1980
+    },
+    {
+      "label": "15-Apr-2026",
+      "value": 1881
+    },
+    {
+      "label": "16-Apr-2026",
+      "value": 2376
+    },
+    {
+      "label": "17-Apr-2026",
+      "value": 2079
+    },
+    {
+      "label": "18-Apr-2026",
+      "value": 1089
+    },
+    {
+      "label": "19-Apr-2026",
+      "value": 34891
+    },
+    {
+      "label": "20-Apr-2026",
+      "value": 99
+    },
+    {
+      "label": "21-Apr-2026",
+      "value": 2891
+    },
+    {
+      "label": "22-Apr-2026",
+      "value": 693
+    }
+  ],
+  "peakDay": {
+    "label": "12-Apr-2026",
+    "value": 54871
+  },
+  "generated_at": "2026-06-09T18:20:46.117Z"
+}

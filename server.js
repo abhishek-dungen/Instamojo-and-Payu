@@ -1,6 +1,7 @@
 import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
+import { fetchCashfreeRows, summarize as summarizeCashfree, toCsv as toCsvCashfree } from "./lib/cashfree.mjs";
 import { fetchPayuRows, summarize as summarizePayu, toCsv as toCsvPayu } from "./lib/payu.mjs";
 import { isSuccessfulPayment, loadEnvFiles, normalizePayment, readCsvPayments, sortRows, summarize, toCsv } from "./lib/instamojo.mjs";
 
@@ -20,6 +21,11 @@ const providers = {
     summaryFile: path.join(dataDir, "summary.json"),
     csvName: "instamojo-all-successful-payments.csv",
   },
+  cashfree: {
+    rowsFile: path.join(dataDir, "cashfree", "transactions.json"),
+    summaryFile: path.join(dataDir, "cashfree", "summary.json"),
+    csvName: "cashfree-all-payments.csv",
+  },
   payu: {
     rowsFile: path.join(dataDir, "payu", "transactions.json"),
     summaryFile: path.join(dataDir, "payu", "summary.json"),
@@ -29,7 +35,7 @@ const providers = {
 
 const readJson = (file, fallback) => { try { return JSON.parse(fs.readFileSync(file, "utf8")); } catch { return fallback; } };
 const writeJson = (file, data) => { fs.mkdirSync(path.dirname(file), { recursive: true }); fs.writeFileSync(file, JSON.stringify(data, null, 2)); };
-const providerOf = (u) => (u === "instamojo" || u === "payu" ? u : "all");
+const providerOf = (u) => (u === "instamojo" || u === "cashfree" || u === "payu" ? u : "all");
 
 async function fetchInstamojoRows() {
   const key = process.env.INSTAMOJO_API_KEY;
@@ -52,12 +58,20 @@ async function fetchInstamojoRows() {
 
 async function refresh(provider) {
   if (provider === "all") {
-    const [instamojoRows, payuRows] = await Promise.all([fetchInstamojoRows(), fetchPayuRows()]);
-    const rows = sortRows([...instamojoRows, ...payuRows]);
+    const [instamojoRows, payuRows, cashfreeRows] = await Promise.all([fetchInstamojoRows(), fetchPayuRows(), fetchCashfreeRows()]);
+    const rows = sortRows([...instamojoRows, ...payuRows, ...cashfreeRows]);
     const summary = { ...summarize(rows), generated_at: new Date().toISOString() };
     writeJson(providers.all.rowsFile, rows);
     writeJson(providers.all.summaryFile, summary);
     fs.writeFileSync(path.join(dataDir, "all", "transactions.csv"), `${toCsv(rows)}`);
+    return { rows, summary };
+  }
+  if (provider === "cashfree") {
+    const rows = await fetchCashfreeRows();
+    const summary = { ...summarizeCashfree(rows), generated_at: new Date().toISOString() };
+    writeJson(providers.cashfree.rowsFile, rows);
+    writeJson(providers.cashfree.summaryFile, summary);
+    fs.writeFileSync(path.join(dataDir, "cashfree", "transactions.csv"), toCsvCashfree(rows));
     return { rows, summary };
   }
   if (provider === "payu") {
@@ -100,13 +114,13 @@ http.createServer(async (req, res) => {
     if (url.pathname === "/api/data") {
       const cfg = providers[provider];
       const rows = readJson(cfg.rowsFile, []);
-      const summary = readJson(cfg.summaryFile, provider === "payu" ? summarizePayu(rows) : summarize(rows));
+      const summary = readJson(cfg.summaryFile, provider === "payu" ? summarizePayu(rows) : provider === "cashfree" ? summarizeCashfree(rows) : summarize(rows));
       return send(res, 200, { provider, rows, summary });
     }
     if (url.pathname === "/api/export.csv") {
       const cfg = providers[provider];
       const rows = readJson(cfg.rowsFile, []);
-      const csv = provider === "payu" ? toCsvPayu(rows) : toCsv(rows);
+      const csv = provider === "payu" ? toCsvPayu(rows) : provider === "cashfree" ? toCsvCashfree(rows) : toCsv(rows);
       res.writeHead(200, { "content-type": "text/csv", "content-disposition": `attachment; filename="${cfg.csvName}"` });
       return res.end(csv);
     }

@@ -92,6 +92,7 @@ function render() {
   ].filter((x) => x.value > 0), "#categoryChart", "#74d6ff");
   chart(Object.entries(rows.reduce((m, r) => ((m[r.status] = (m[r.status] || 0) + 1), m), {})).map(([label, value]) => ({ label, value })), "#statusChart", "#8cffc3");
   $("#summaryLine").textContent = `Showing ${rows.length} of ${state.rows.length} transactions.`;
+  $("#lastSync").textContent = state.summary?.generated_at ? new Date(state.summary.generated_at).toLocaleString() : "--";
   $("#table").innerHTML = rows.map((r) => `
     <tr>
       <td></td>

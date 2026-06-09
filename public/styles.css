@@ -6,6 +6,10 @@ linear-gradient(180deg,#07101b 0%,#0a1324 35%,#060b13 100%);background-attachmen
 button,input,select{font:inherit}
 .app{max-width:1500px;margin:0 auto;padding:28px}
 .hero{display:flex;justify-content:space-between;gap:20px;align-items:end;margin-bottom:18px}
+.hero-right{display:flex;flex-direction:column;align-items:flex-end;gap:12px}
+.sync-pill{display:flex;flex-direction:column;align-items:flex-end;gap:4px;padding:10px 14px;border:1px solid rgba(255,255,255,.08);border-radius:16px;background:rgba(10,18,33,.62);min-width:220px}
+.sync-pill span{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.08em}
+.sync-pill strong{font-size:14px;letter-spacing:.01em}
 .eyebrow{margin:0 0 8px;color:var(--accent2);text-transform:uppercase;letter-spacing:.18em;font-size:11px}
 h1{margin:0;font-size:54px;line-height:.95;letter-spacing:-.04em}
 .lede{margin:10px 0 0;font-size:15px}
@@ -47,5 +51,5 @@ tr.selected td{background:rgba(140,255,195,.06)}
 .tag.completed,.tag.credit,.tag.success{background:rgba(140,255,195,.16);color:#bffff0}
 .tag.pending,.tag.initiated{background:rgba(255,206,115,.16);color:#ffe4a7}
 .tag.failed,.tag.failure{background:rgba(255,120,120,.16);color:#ffc7c7}
-@media (max-width:1200px){.kpis{grid-template-columns:repeat(4,1fr)}.controls{grid-template-columns:1fr 1fr 1fr}.grid,.toolbar{grid-template-columns:1fr}}
+@media (max-width:1200px){.kpis{grid-template-columns:repeat(4,1fr)}.controls{grid-template-columns:1fr 1fr 1fr}.grid,.toolbar{grid-template-columns:1fr}.hero{align-items:start}.hero-right{align-items:flex-start}}
 @media (max-width:720px){.app{padding:16px}h1{font-size:40px}.kpis{grid-template-columns:repeat(2,1fr)}.controls{grid-template-columns:1fr}}
