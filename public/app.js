@@ -188,6 +188,19 @@ function menuHTML(field) {
     </div>`;
 }
 
+function renderFilterWidgets() {
+  const wrap = $("#filterWidgets");
+  if (!wrap) return;
+  wrap.innerHTML = filterFields.map((field) => `
+    <div class="filter-widget">
+      <button type="button" class="filter-trigger" data-action="toggle" data-field="${field}" data-filter-button="${field}">
+        <span>${field[0].toUpperCase() + field.slice(1)}</span>
+        <strong>${filterBadge(field)}</strong>
+      </button>
+    </div>
+  `).join("");
+}
+
 function portal() {
   let el = $("#filterPortal");
   if (!el) {
@@ -199,7 +212,18 @@ function portal() {
   return el;
 }
 
-function positionFilterPortal() {
+function updateFilterPortalOptions(field) {
+  const p = portal();
+  const box = p.querySelector(".filter-options");
+  if (!box) return;
+  const options = filterOptions(field);
+  box.innerHTML = options.map((v) => {
+    const checked = state.filters[field].includes(v) ? "checked" : "";
+    return `<label class="filter-option"><input type="checkbox" data-field="${field}" data-value="${esc(v)}" ${checked}><span>${esc(v)}</span></label>`;
+  }).join("") || `<div class="empty small">No matches</div>`;
+}
+
+function positionFilterPortal(focus = false) {
   const field = state.ui.open;
   const p = portal();
   if (!field) { p.innerHTML = ""; p.hidden = true; return; }
@@ -211,22 +235,7 @@ function positionFilterPortal() {
   p.style.left = `${Math.max(8, Math.min(r.left, window.innerWidth - Math.max(260, r.width) - 8))}px`;
   p.style.width = `${Math.max(260, r.width)}px`;
   p.innerHTML = menuHTML(field);
-  requestAnimationFrame(() => p.querySelector(`[data-search="${field}"]`)?.focus());
-}
-
-function renderHeaderFilters() {
-  document.querySelectorAll("[data-filter-header]").forEach((th) => {
-    const field = th.dataset.filterHeader;
-    const cap = field[0].toUpperCase() + field.slice(1);
-    th.innerHTML = `
-      <div class="filter-head">
-        <span>${cap}</span>
-        <button type="button" class="filter-trigger" data-action="toggle" data-field="${field}" data-filter-button="${field}">
-          <strong>${filterBadge(field)}</strong>
-        </button>
-      </div>`;
-  });
-  positionFilterPortal();
+  if (focus) requestAnimationFrame(() => p.querySelector(`[data-search="${field}"]`)?.focus());
 }
 
 function csv(rows) {
@@ -269,7 +278,8 @@ function render() {
     metricCard("Course conversion", pct(history.registrations ? history.courses / history.registrations : 0)),
   ].join("");
   $("#lastSync").textContent = state.summary?.generated_at ? new Date(state.summary.generated_at).toLocaleString() : "--";
-  renderHeaderFilters();
+  renderFilterWidgets();
+  positionFilterPortal();
   $("#table").innerHTML = rows.map((r) => `
     <tr>
       <td><strong>${esc(r.name || "")}</strong></td>
@@ -307,26 +317,33 @@ $("#clearFilters").addEventListener("click", () => {
   render();
 });
 
-document.addEventListener("click", (e) => {
+$("#filterWidgets").addEventListener("click", (e) => {
   const a = e.target.closest("[data-action]");
   if (!a) return;
   const field = a.dataset.field;
   const action = a.dataset.action;
   if (action === "toggle") {
     state.ui.open = state.ui.open === field ? null : field;
-    positionFilterPortal();
+    positionFilterPortal(true);
     return;
   }
+});
+
+portal().addEventListener("click", (e) => {
+  const a = e.target.closest("[data-action]");
+  if (!a) return;
+  const field = a.dataset.field;
+  const action = a.dataset.action;
   if (action === "select-all") {
     setFilter(field, filterOptions(field));
     state.ui.open = field;
-    positionFilterPortal();
+    positionFilterPortal(false);
     return;
   }
   if (action === "clear") {
     clearFilter(field);
     state.ui.open = field;
-    positionFilterPortal();
+    positionFilterPortal(false);
   }
 });
 
@@ -334,7 +351,7 @@ portal().addEventListener("input", (e) => {
   const input = e.target.closest("[data-search]");
   if (!input) return;
   state.ui.search[input.dataset.search] = input.value;
-  positionFilterPortal();
+  updateFilterPortalOptions(input.dataset.search);
 });
 
 portal().addEventListener("change", (e) => {
@@ -344,7 +361,7 @@ portal().addEventListener("change", (e) => {
 });
 
 document.addEventListener("click", (e) => {
-  if (!e.target.closest("#filterPortal") && !e.target.closest("[data-filter-button]")) {
+  if (!e.target.closest("#filterPortal") && !e.target.closest("#filterWidgets")) {
     state.ui.open = null;
     positionFilterPortal();
   }
