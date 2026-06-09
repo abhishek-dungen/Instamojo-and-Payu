@@ -6,7 +6,8 @@
     "start": "node server.js",
     "sync": "node scripts/sync.mjs",
     "sync:payu": "node scripts/sync-payu.mjs",
-    "sync:all": "node scripts/sync-all.mjs"
+    "sync:all": "node scripts/sync-all.mjs",
+    "test": "node --test"
   },
   "dependencies": {
     "firebase-admin": "^14.0.0"

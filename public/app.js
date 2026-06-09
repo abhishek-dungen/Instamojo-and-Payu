@@ -7,7 +7,7 @@ const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "
 const num = (v) => Number(v || 0);
 const isSuccess = (r) => /^(completed|credit|success|succeeded|captured)$/i.test(String(r?.status || ""));
 const webinarDate = "04-Jan-2026";
-const isBundleUpsell = (r) => num(r.amount) === 99 && String(r.purpose || "").toLowerCase().includes("ultimate resource bundle");
+const isBundleUpsell = (r) => num(r.amount) === 99 && String(r.purpose || r.source_purpose || "").toLowerCase().includes("ultimate resource bundle");
 
 function parseDmy(date) {
   const m = String(date || "").match(/^(\d{2})-([A-Za-z]{3})-(\d{4})$/);
@@ -110,7 +110,7 @@ async function loadJson(url) {
   return res.json();
 }
 
-const rowText = (r) => [r.transaction, r.name, r.phone, r.email, r.source, r.category, r.amount, r.date, r.day, r.time, r.request_id, r.status, r.amount_bucket, r.purpose].join(" ").toLowerCase();
+const rowText = (r) => [r.transaction, r.name, r.phone, r.email, r.source, r.category, r.amount, r.date, r.day, r.time, r.request_id, r.status, r.amount_bucket, r.purpose, r.source_purpose].join(" ").toLowerCase();
 const uniq = (v) => [...new Set(v.filter((x) => x !== "" && x !== null && x !== undefined).map((x) => String(x)))].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 
 function filterRows() {

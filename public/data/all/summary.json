@@ -6,12 +6,12 @@
     "completed": 1701,
     "pending": 0,
     "failed": 0,
-    "webinarCount": 861,
-    "bundleCount": 545,
+    "webinarCount": 804,
+    "bundleCount": 602,
     "courseCount": 255,
     "otherCount": 40,
-    "webinarAmount": 85239,
-    "bundleAmount": 107910,
+    "webinarAmount": 79596,
+    "bundleAmount": 113553,
     "courseAmount": 531487,
     "otherAmount": 1611,
     "avgTicket": 426.95296884185774,
@@ -30,11 +30,11 @@
   "byCategory": [
     {
       "label": "Webinar",
-      "value": 861
+      "value": 804
     },
     {
       "label": "Bundle",
-      "value": 545
+      "value": 602
     },
     {
       "label": "Course",
@@ -763,5 +763,5 @@
     "label": "12-Apr-2026",
     "value": 54871
   },
-  "generated_at": "2026-06-09T21:10:44.055Z"
+  "generated_at": "2026-06-09T21:50:42.231Z"
 }
