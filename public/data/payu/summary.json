@@ -1,63 +1,28 @@
 {
   "totals": {
-    "count": 17,
-    "collected": 35002,
-    "requested": 35002,
-    "completed": 17,
+    "count": 0,
+    "collected": 0,
+    "requested": 0,
+    "completed": 0,
     "pending": 0,
     "failed": 0,
     "webinarCount": 0,
     "bundleCount": 0,
-    "courseCount": 15,
-    "otherCount": 2,
+    "courseCount": 0,
+    "otherCount": 0,
     "webinarAmount": 0,
     "bundleAmount": 0,
-    "courseAmount": 35000,
-    "otherAmount": 2,
-    "avgTicket": 2058.9411764705883,
-    "completionRate": 1
+    "courseAmount": 0,
+    "otherAmount": 0,
+    "avgTicket": 0,
+    "completionRate": 0
   },
-  "byStatus": [
-    {
-      "label": "captured",
-      "value": 17
-    }
-  ],
-  "byCategory": [
-    {
-      "label": "Course",
-      "value": 15
-    },
-    {
-      "label": "Other",
-      "value": 2
-    }
-  ],
-  "byDate": [
-    {
-      "label": "19-Apr-2026",
-      "value": 6000
-    },
-    {
-      "label": "17-May-2026",
-      "value": 4000
-    },
-    {
-      "label": "24-May-2026",
-      "value": 10000
-    },
-    {
-      "label": "31-May-2026",
-      "value": 7502
-    },
-    {
-      "label": "07-Jun-2026",
-      "value": 7500
-    }
-  ],
+  "byStatus": [],
+  "byCategory": [],
+  "byDate": [],
   "peakDay": {
-    "label": "24-May-2026",
-    "value": 10000
+    "label": "",
+    "value": 0
   },
-  "generated_at": "2026-06-09T19:15:19.033Z"
+  "generated_at": "2026-06-09T20:30:51.488Z"
 }

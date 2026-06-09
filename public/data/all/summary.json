@@ -1,30 +1,26 @@
 {
   "totals": {
-    "count": 1763,
-    "collected": 771305,
-    "requested": 771305,
-    "completed": 1763,
+    "count": 1746,
+    "collected": 736303,
+    "requested": 736303,
+    "completed": 1746,
     "pending": 0,
     "failed": 0,
     "webinarCount": 885,
     "bundleCount": 561,
-    "courseCount": 273,
-    "otherCount": 44,
+    "courseCount": 258,
+    "otherCount": 42,
     "webinarAmount": 87615,
     "bundleAmount": 111078,
-    "courseAmount": 570981,
-    "otherAmount": 1631,
-    "avgTicket": 437.49574588769144,
+    "courseAmount": 535981,
+    "otherAmount": 1629,
+    "avgTicket": 421.7084765177549,
     "completionRate": 1
   },
   "byStatus": [
     {
       "label": "Completed",
       "value": 1746
-    },
-    {
-      "label": "captured",
-      "value": 17
     }
   ],
   "byCategory": [
@@ -38,11 +34,11 @@
     },
     {
       "label": "Course",
-      "value": 273
+      "value": 258
     },
     {
       "label": "Other",
-      "value": 44
+      "value": 42
     }
   ],
   "byDate": [
@@ -552,7 +548,7 @@
     },
     {
       "label": "19-Apr-2026",
-      "value": 40891
+      "value": 34891
     },
     {
       "label": "20-Apr-2026",
@@ -660,7 +656,7 @@
     },
     {
       "label": "17-May-2026",
-      "value": 29287
+      "value": 25287
     },
     {
       "label": "18-May-2026",
@@ -688,7 +684,7 @@
     },
     {
       "label": "24-May-2026",
-      "value": 27797
+      "value": 17797
     },
     {
       "label": "25-May-2026",
@@ -716,7 +712,7 @@
     },
     {
       "label": "31-May-2026",
-      "value": 24878
+      "value": 17376
     },
     {
       "label": "01-Jun-2026",
@@ -744,7 +740,7 @@
     },
     {
       "label": "07-Jun-2026",
-      "value": 38193
+      "value": 30693
     },
     {
       "label": "08-Jun-2026",
@@ -759,5 +755,5 @@
     "label": "12-Apr-2026",
     "value": 54871
   },
-  "generated_at": "2026-06-09T19:15:19.040Z"
+  "generated_at": "2026-06-09T20:30:51.495Z"
 }
