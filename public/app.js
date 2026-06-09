@@ -4,6 +4,8 @@ const state = { rows: [], summary: null, filters: { q: "", status: "", category:
 
 const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const num = (v) => Number(v || 0);
+const isSuccess = (r) => /^(completed|credit|success|succeeded)$/i.test(String(r?.status || ""));
+const isInstamojo = (r) => String(r?.source || "").toLowerCase() === "instamojo";
 
 async function loadJson(url) {
   const res = await fetch(url, { cache: "no-store" });
@@ -63,8 +65,8 @@ function download(name, text, type = "text/plain") {
 function render() {
   const rows = filterRows();
   const total = rows.reduce((s, r) => s + num(r.amount), 0);
-  const collected = rows.filter((r) => /^(completed|credit|success|succeeded)$/i.test(r.status)).reduce((s, r) => s + num(r.amount), 0);
-  const completed = rows.filter((r) => /^(completed|credit|success|succeeded)$/i.test(r.status)).length;
+  const collected = rows.filter(isSuccess).reduce((s, r) => s + num(r.amount), 0);
+  const completed = rows.filter(isSuccess).length;
   const pending = rows.filter((r) => /^(pending|initiated)$/i.test(r.status)).length;
   const split = (k) => rows.filter((r) => r.category === k);
   $("#kpis").innerHTML = [
@@ -131,7 +133,8 @@ async function refreshData() {
 
 $("#exportAll").addEventListener("click", () => {
   if (!state.rows.length) return;
-  download("instamojo-all-successful-payments.csv", csv(state.rows), "text/csv");
+  const rows = state.rows.filter(isSuccess).filter(isInstamojo);
+  download("instamojo-all-successful-payments.csv", csv(rows), "text/csv");
 });
 $("#reload").addEventListener("click", refreshData);
 $("#serverRefresh").addEventListener("click", async () => {
