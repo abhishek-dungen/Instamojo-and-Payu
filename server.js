@@ -3,9 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fetchCashfreeRows, summarize as summarizeCashfree, toCsv as toCsvCashfree } from "./lib/cashfree.mjs";
 import { fetchPayuRows, summarize as summarizePayu, toCsv as toCsvPayu } from "./lib/payu.mjs";
-import { isSuccessfulPayment, loadEnvFiles, normalizePayment, readCsvPayments, sortRows, summarize, toCsv } from "./lib/instamojo.mjs";
-
-loadEnvFiles();
+import { fetchInstamojoRows, summarize, toCsv } from "./lib/instamojo.mjs";
 
 const root = process.cwd();
 const publicDir = path.join(root, "public");
@@ -36,25 +34,6 @@ const providers = {
 const readJson = (file, fallback) => { try { return JSON.parse(fs.readFileSync(file, "utf8")); } catch { return fallback; } };
 const writeJson = (file, data) => { fs.mkdirSync(path.dirname(file), { recursive: true }); fs.writeFileSync(file, JSON.stringify(data, null, 2)); };
 const providerOf = (u) => (u === "instamojo" || u === "cashfree" || u === "payu" ? u : "all");
-
-async function fetchInstamojoRows() {
-  const key = process.env.INSTAMOJO_API_KEY;
-  const token = process.env.INSTAMOJO_AUTH_TOKEN;
-  if (!key || !token) return [];
-  const headers = { "X-Api-Key": key, "X-Auth-Token": token };
-  const base = process.env.INSTAMOJO_BASE_URL || "https://www.instamojo.com";
-  const rows = [];
-  for (let page = 1; page <= 50; page++) {
-    const res = await fetch(`${base}/api/1.1/payment-requests/?page=${page}&limit=500`, { headers });
-    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-    const json = await res.json();
-    const batch = Array.isArray(json) ? json : (json.payment_requests || json.results || json.data || []);
-    rows.push(...batch);
-    const totalPages = Number(res.headers.get("pages") || json.pages || json.total_pages || 1) || 1;
-    if (page >= totalPages || batch.length < 500) break;
-  }
-  return sortRows(rows.map((r) => normalizePayment(r, r)).filter(isSuccessfulPayment));
-}
 
 async function refresh(provider) {
   if (provider === "all") {
