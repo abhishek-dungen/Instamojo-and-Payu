@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { loadEnvFiles, normalizePayment, readCsvPayments, sortRows, summarize, toCsv } from "../lib/instamojo.mjs";
+import { isSuccessfulPayment, loadEnvFiles, normalizePayment, readCsvPayments, sortRows, summarize, toCsv } from "../lib/instamojo.mjs";
 
 loadEnvFiles();
 
@@ -43,13 +43,13 @@ async function fetchInstamojoRows() {
     const moreRows = Array.isArray(p) ? p : (p.payment_requests || p.results || p.data || []);
     all.push(...moreRows);
   }
-  return sortRows(all.map((r) => normalizePayment(r, r)));
+  return sortRows(all.map((r) => normalizePayment(r, r)).filter(isSuccessfulPayment));
 }
 
 let remoteRows = [];
 try { remoteRows = await fetchInstamojoRows(); } catch { remoteRows = []; }
 const seedRows = remoteRows.length ? remoteRows : readCsvPayments(fallbackCsv);
-const cachedRows = readJson(rowsFile, []);
+const cachedRows = readJson(rowsFile, []).filter(isSuccessfulPayment);
 const rows = sortRows([...seedRows, ...cachedRows].reduce((m, r) => m.set(r.transaction, r), new Map()).values());
 const summary = { ...summarize(rows), generated_at: new Date().toISOString() };
 writeJson(rowsFile, rows);

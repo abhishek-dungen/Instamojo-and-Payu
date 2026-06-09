@@ -1,7 +1,7 @@
 import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
-import { loadEnvFiles, normalizePayment, readCsvPayments, sortRows, summarize, toCsv } from "./lib/instamojo.mjs";
+import { isSuccessfulPayment, loadEnvFiles, normalizePayment, readCsvPayments, sortRows, summarize, toCsv } from "./lib/instamojo.mjs";
 
 loadEnvFiles();
 
@@ -46,7 +46,7 @@ async function fetchInstamojoRows() {
         const moreRows = Array.isArray(p) ? p : (p.payment_requests || p.results || p.data || []);
         all.push(...moreRows);
       }
-      return sortRows(all.map((r) => normalizePayment(r, r)));
+      return sortRows(all.map((r) => normalizePayment(r, r)).filter(isSuccessfulPayment));
     } catch (e) {
       lastErr = String(e.message || e);
     }
