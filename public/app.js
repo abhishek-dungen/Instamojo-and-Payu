@@ -5,6 +5,7 @@ const state = { rows: [], summary: null, filters: { source: "", q: "", status: "
 const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const num = (v) => Number(v || 0);
 const isSuccess = (r) => /^(completed|credit|success|succeeded|captured)$/i.test(String(r?.status || ""));
+const isComplete = (r) => String(r?.phone || "").trim() && String(r?.email || "").trim();
 
 async function loadJson(url) {
   const res = await fetch(url, { cache: "no-store" });
@@ -139,7 +140,7 @@ async function refreshData() {
 
 $("#exportAll").addEventListener("click", () => {
   if (!state.rows.length) return;
-  download("all-successful-payments.csv", csv(state.rows.filter(isSuccess)), "text/csv");
+  download("all-successful-payments.csv", csv(state.rows.filter(isSuccess).filter(isComplete)), "text/csv");
 });
 $("#reload").addEventListener("click", refreshData);
 $("#serverRefresh").addEventListener("click", async () => {
