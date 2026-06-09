@@ -6,6 +6,7 @@ const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "
 const num = (v) => Number(v || 0);
 const isSuccess = (r) => /^(completed|credit|success|succeeded|captured)$/i.test(String(r?.status || ""));
 const webinarDate = "04-Jan-2026";
+const isBundleUpsell = (r) => num(r.amount) === 99 && String(r.purpose || "").toLowerCase().includes("ultimate resource bundle");
 
 function parseDmy(date) {
   const m = String(date || "").match(/^(\d{2})-([A-Za-z]{3})-(\d{4})$/);
@@ -65,11 +66,11 @@ function webinarStats(date) {
   const [lStart, lEnd] = liveWindow(date);
   const registrations = state.rows.filter((r) => {
     const ts = toIstTs(r.date, r.time);
-    return ts !== null && ts >= wStart && ts < wEnd && (num(r.amount) === 99 || num(r.amount) === 198);
+    return ts !== null && ts >= wStart && ts < wEnd && !isBundleUpsell(r) && (num(r.amount) === 99 || num(r.amount) === 198);
   }).length;
   const bundles = state.rows.filter((r) => {
     const ts = toIstTs(r.date, r.time);
-    return ts !== null && ts >= wStart && ts < wEnd && num(r.amount) === 198;
+    return ts !== null && ts >= wStart && ts < wEnd && (num(r.amount) === 198 || isBundleUpsell(r));
   }).length;
   const courses = state.rows.filter((r) => {
     const ts = toIstTs(r.date, r.time);
