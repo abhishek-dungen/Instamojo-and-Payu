@@ -1,3 +1,18 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getFirestore, collection, onSnapshot, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  projectId: "instamojo-and-payu",
+  appId: "1:804022659047:web:75aeeffeba26e4c6c73f42",
+  storageBucket: "instamojo-and-payu.firebasestorage.app",
+  apiKey: "AIzaSyB534BFLa3yqWxPaRvdioNRr-Om5nfBZeU",
+  authDomain: "instamojo-and-payu.firebaseapp.com",
+  messagingSenderId: "804022659047"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
 const $ = (s) => document.querySelector(s);
 const money = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 });
 const filterFields = ["source", "category", "amount", "date", "day"];
@@ -295,17 +310,47 @@ function render() {
   $("#refreshState").textContent = state.summary?.generated_at ? `Updated ${new Date(state.summary.generated_at).toLocaleString()}` : "Loaded";
 }
 
-async function refreshData() {
-  $("#refreshState").textContent = "Loading...";
-  try {
-    const [rows, summary] = await Promise.all([loadJson("./data/all/transactions.json"), loadJson("./data/all/summary.json")]);
-    state.rows = rows;
-    state.summary = summary;
+let unsubRows = null;
+let unsubMeta = null;
+
+function refreshData() {
+  $("#refreshState").textContent = "Connecting to Firestore...";
+  
+  if (unsubRows) {
+    try { unsubRows(); } catch {}
+  }
+  if (unsubMeta) {
+    try { unsubMeta(); } catch {}
+  }
+  
+  unsubMeta = onSnapshot(doc(db, "meta", "payments"), (docSnap) => {
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      state.summary = {
+        ...data,
+        generated_at: data.generated_at || (data.updated_at ? data.updated_at.toDate().toISOString() : new Date().toISOString())
+      };
+      render();
+    }
+  }, (err) => {
+    console.error("Meta summary subscription failed:", err);
+  });
+  
+  unsubRows = onSnapshot(collection(db, "payments"), (snapshot) => {
+    const rows = [];
+    snapshot.forEach((d) => {
+      rows.push(d.data());
+    });
+    state.rows = sortRows(rows);
     applyWebinarOptions();
     render();
-  } catch {
-    $("#refreshState").textContent = "No combined data file yet. Run sync first.";
-  }
+    $("#refreshState").textContent = state.summary?.generated_at 
+      ? `Updated ${new Date(state.summary.generated_at).toLocaleString()}` 
+      : "Loaded";
+  }, (err) => {
+    console.error("Payments subscription failed:", err);
+    $("#refreshState").textContent = "Failed to load from Firestore.";
+  });
 }
 
 $("#q").addEventListener("input", (e) => { state.filters.q = e.target.value.trim().toLowerCase(); render(); });
