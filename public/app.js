@@ -310,6 +310,15 @@ function render() {
   $("#refreshState").textContent = state.summary?.generated_at ? `Updated ${new Date(state.summary.generated_at).toLocaleString()}` : "Loaded";
 }
 
+function sortRows(rows) {
+  return [...rows].sort((a, b) => {
+    const ta = Date.parse(a.created_at || a.updated_at || 0) || 0;
+    const tb = Date.parse(b.created_at || b.updated_at || 0) || 0;
+    if (tb !== ta) return tb - ta;
+    return Number(b.amount || 0) - Number(a.amount || 0);
+  });
+}
+
 let unsubRows = null;
 let unsubMeta = null;
 

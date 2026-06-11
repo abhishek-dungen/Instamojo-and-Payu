@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fetchCashfreeRows, summarize as summarizeCashfree, toCsv as toCsvCashfree } from "./lib/cashfree.mjs";
 import { fetchPayuRows, summarize as summarizePayu, toCsv as toCsvPayu } from "./lib/payu.mjs";
-import { fetchInstamojoRows, summarize, toCsv } from "./lib/instamojo.mjs";
+import { fetchInstamojoRows, summarize, sortRows, toCsv } from "./lib/instamojo.mjs";
 
 const root = process.cwd();
 const publicDir = path.join(root, "public");
