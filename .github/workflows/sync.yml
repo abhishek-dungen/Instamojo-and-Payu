@@ -21,6 +21,18 @@ jobs:
       - run: node scripts/sync-all.mjs
         env:
           FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+          INSTAMOJO_CLIENT_ID: ${{ secrets.INSTAMOJO_CLIENT_ID }}
+          INSTAMOJO_CLIENT_SECRET: ${{ secrets.INSTAMOJO_CLIENT_SECRET }}
+          INSTAMOJO_ACCESS_TOKEN: ${{ secrets.INSTAMOJO_ACCESS_TOKEN }}
+          INSTAMOJO_API_KEY: ${{ secrets.INSTAMOJO_API_KEY }}
+          INSTAMOJO_AUTH_TOKEN: ${{ secrets.INSTAMOJO_AUTH_TOKEN }}
+          PAYU_MID: ${{ secrets.PAYU_MID }}
+          PAYU_KEY: ${{ secrets.PAYU_KEY }}
+          PAYU_SALT: ${{ secrets.PAYU_SALT }}
+          PAYU_CLIENT_ID: ${{ secrets.PAYU_CLIENT_ID }}
+          PAYU_CLIENT_SECRET: ${{ secrets.PAYU_CLIENT_SECRET }}
+          PAYU_BASE_URL: ${{ secrets.PAYU_BASE_URL }}
+          PAYU_START_DATE: "2025-11-01"
       - run: |
           if git diff --quiet; then exit 0; fi
           git config user.name github-actions[bot]
