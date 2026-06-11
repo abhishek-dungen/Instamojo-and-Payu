@@ -265,7 +265,7 @@ async function fetchInstamojoV2Rows() {
         return [];
       }
     }).sort((a, b) => a - b);
-    const start = process.env.INSTAMOJO_START_DATE ? parseDate(process.env.INSTAMOJO_START_DATE) : (cachedDates[0] ? new Date(cachedDates[0].getTime() - 7 * 86400000) : null);
+    const start = process.env.INSTAMOJO_START_DATE ? parseDate(process.env.INSTAMOJO_START_DATE) : new Date(Date.now() - 7 * 86400000);
     const end = new Date();
     const from = start || new Date(Date.UTC(end.getUTCFullYear() - 1, 0, 1));
     const rows = [];
@@ -302,18 +302,10 @@ async function fetchInstamojoV1Rows() {
   const headers = { "X-Api-Key": key, "X-Auth-Token": token };
   const base = process.env.INSTAMOJO_BASE_URL || "https://www.instamojo.com";
   try {
-    const first = await fetchPage(`${base}/api/1.1/payment-requests/?page=1&limit=500`, headers);
+    const first = await fetchPage(`${base}/api/1.1/payment-requests/?page=1&limit=100`, headers);
     const payload = first.json || {};
     const rows = Array.isArray(payload) ? payload : (payload.payment_requests || payload.results || payload.data || []);
-    const pages = Number(payload.pages || first.headers.get("pages") || 1) || 1;
-    const all = [...rows];
-    for (let page = 2; page <= pages; page++) {
-      const more = await fetchPage(`${base}/api/1.1/payment-requests/?page=${page}&limit=500`, headers);
-      const p = more.json || {};
-      const moreRows = Array.isArray(p) ? p : (p.payment_requests || p.results || p.data || []);
-      all.push(...moreRows);
-    }
-    return sortRows(all.map((r) => normalizePayment(r, r)).filter(isSuccessfulPayment));
+    return sortRows(rows.map((r) => normalizePayment(r, r)).filter(isSuccessfulPayment));
   } catch {
     return [];
   }
@@ -400,18 +392,28 @@ async function enrichInstamojoRowsWithPaymentRequests(rows, base, token) {
 
 export async function fetchInstamojoRows() {
   loadEnvFiles();
+  const cachedPath = path.join(process.cwd(), "public", "data", "transactions.json");
+  const cached = fs.existsSync(cachedPath) ? JSON.parse(fs.readFileSync(cachedPath, "utf8")) : [];
+  const map = new Map(cached.map(r => [[r.source, r.transaction].join("|"), r]));
+
   const [v2Rows, v1Rows] = await Promise.all([fetchInstamojoV2Rows(), fetchInstamojoV1Rows()]);
   const merged = v2Rows.length ? mergeInstamojoRows(v2Rows, v1Rows) : v1Rows;
+  let enriched = merged;
   if (merged.length && v2Rows.length) {
     const base = process.env.INSTAMOJO_V2_BASE_URL || "https://api.instamojo.com";
     const token = await refreshInstamojoAccessToken();
-    if (!token) return merged;
-    return enrichInstamojoRowsWithPaymentRequests(merged, base, token || "");
+    if (token) {
+      try {
+        enriched = await enrichInstamojoRowsWithPaymentRequests(merged, base, token);
+      } catch {}
+    }
   }
-  if (v1Rows.length) return v1Rows;
-  const cached = path.join(process.cwd(), "public", "data", "transactions.json");
-  if (fs.existsSync(cached)) return sortRows(JSON.parse(fs.readFileSync(cached, "utf8")));
-  return [];
+
+  for (const row of enriched) {
+    map.set([row.source, row.transaction].join("|"), row);
+  }
+
+  return sortRows(Array.from(map.values()));
 }
 
 export function summarize(rows = []) {
