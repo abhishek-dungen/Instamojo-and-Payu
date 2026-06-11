@@ -12,7 +12,7 @@ const addDays = (d, n) => new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(),
 
 function rangeFromEnv() {
   const start = process.env.PAYU_START_DATE && parseDate(process.env.PAYU_START_DATE);
-  const end = process.env.PAYU_END_DATE && parseDate(process.env.PAYU_END_DATE);
+  const end = (process.env.PAYU_END_DATE && parseDate(process.env.PAYU_END_DATE)) || (start ? new Date() : null);
   if (start && end) return { start, end };
   try {
     const rows = JSON.parse(fs.readFileSync("public/data/payu/transactions.json", "utf8"));
