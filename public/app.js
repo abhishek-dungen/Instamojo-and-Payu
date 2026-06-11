@@ -17,6 +17,8 @@ const $ = (s) => document.querySelector(s);
 const money = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 });
 const filterFields = ["source", "category", "amount", "date", "day"];
 const state = { rows: [], summary: null, filters: { q: "", source: [], category: [], amount: [], date: [], day: [], webinar: "" }, ui: { open: null, search: {} } };
+window.state = state;
+window.db = db;
 
 const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const num = (v) => Number(v || 0);
