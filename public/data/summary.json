@@ -1,32 +1,32 @@
 {
   "totals": {
-    "count": 1407,
-    "collected": 573151,
-    "requested": 573151,
-    "completed": 1407,
+    "count": 1408,
+    "collected": 573250,
+    "requested": 573250,
+    "completed": 1408,
     "pending": 0,
     "failed": 0,
-    "webinarCount": 645,
+    "webinarCount": 646,
     "bundleCount": 530,
     "courseCount": 192,
     "otherCount": 40,
-    "webinarAmount": 63855,
+    "webinarAmount": 63954,
     "bundleAmount": 99198,
     "courseAmount": 408487,
     "otherAmount": 1611,
-    "avgTicket": 407.3567874911158,
+    "avgTicket": 407.13778409090907,
     "completionRate": 1
   },
   "byStatus": [
     {
       "label": "Completed",
-      "value": 1407
+      "value": 1408
     }
   ],
   "byCategory": [
     {
       "label": "Webinar",
-      "value": 645
+      "value": 646
     },
     {
       "label": "Bundle",
@@ -668,12 +668,12 @@
     },
     {
       "label": "12-Jun-2026",
-      "value": 198
+      "value": 297
     }
   ],
   "peakDay": {
     "label": "07-Jun-2026",
     "value": 55792
   },
-  "generated_at": "2026-06-12T07:01:15.752Z"
+  "generated_at": "2026-06-12T07:15:57.508Z"
 }
