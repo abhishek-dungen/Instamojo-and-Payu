@@ -1,44 +1,48 @@
 {
   "totals": {
-    "count": 1698,
-    "collected": 718747,
-    "requested": 718747,
-    "completed": 1698,
+    "count": 1786,
+    "collected": 789654,
+    "requested": 789654,
+    "completed": 1786,
     "pending": 0,
     "failed": 0,
-    "webinarCount": 804,
-    "bundleCount": 602,
-    "courseCount": 252,
-    "otherCount": 40,
-    "webinarAmount": 79596,
-    "bundleAmount": 113553,
-    "courseAmount": 523987,
-    "otherAmount": 1611,
-    "avgTicket": 423.29034157832746,
+    "webinarCount": 828,
+    "bundleCount": 638,
+    "courseCount": 278,
+    "otherCount": 42,
+    "webinarAmount": 81972,
+    "bundleAmount": 120582,
+    "courseAmount": 585487,
+    "otherAmount": 1613,
+    "avgTicket": 442.13549832026877,
     "completionRate": 1
   },
   "byStatus": [
     {
       "label": "Completed",
-      "value": 1698
+      "value": 1769
+    },
+    {
+      "label": "captured",
+      "value": 17
     }
   ],
   "byCategory": [
     {
       "label": "Webinar",
-      "value": 804
+      "value": 828
     },
     {
       "label": "Bundle",
-      "value": 602
+      "value": 638
     },
     {
       "label": "Course",
-      "value": 252
+      "value": 278
     },
     {
       "label": "Other",
-      "value": 40
+      "value": 42
     }
   ],
   "byDate": [
@@ -548,7 +552,7 @@
     },
     {
       "label": "19-Apr-2026",
-      "value": 34891
+      "value": 40891
     },
     {
       "label": "20-Apr-2026",
@@ -656,7 +660,7 @@
     },
     {
       "label": "17-May-2026",
-      "value": 25287
+      "value": 29287
     },
     {
       "label": "18-May-2026",
@@ -684,7 +688,7 @@
     },
     {
       "label": "24-May-2026",
-      "value": 17797
+      "value": 27797
     },
     {
       "label": "25-May-2026",
@@ -712,7 +716,7 @@
     },
     {
       "label": "31-May-2026",
-      "value": 17376
+      "value": 24878
     },
     {
       "label": "01-Jun-2026",
@@ -740,24 +744,28 @@
     },
     {
       "label": "07-Jun-2026",
-      "value": 30693
+      "value": 63292
     },
     {
       "label": "08-Jun-2026",
-      "value": 1188
+      "value": 2871
     },
     {
       "label": "09-Jun-2026",
-      "value": 2673
+      "value": 5049
     },
     {
       "label": "10-Jun-2026",
-      "value": 198
+      "value": 5460
+    },
+    {
+      "label": "11-Jun-2026",
+      "value": 1485
     }
   ],
   "peakDay": {
-    "label": "12-Apr-2026",
-    "value": 54871
+    "label": "07-Jun-2026",
+    "value": 63292
   },
-  "generated_at": "2026-06-12T02:15:43.055Z"
+  "generated_at": "2026-06-12T02:28:43.424Z"
 }
